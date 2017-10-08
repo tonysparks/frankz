@@ -1,0 +1,15 @@
+{
+    backgroundImage:  
+   // "./assets/gfx/world_screen.jpg",
+    "./assets/gfx/battle_screen.jpg",
+    objects: [
+        {
+            width: 0.9,
+            height: 1.8,
+            x: 5.15,
+            y: 6.0,
+            
+            image: "./assets/gfx/soldiers/british/BritishSoldier_Idle.png"
+        }        
+    ]
+}
