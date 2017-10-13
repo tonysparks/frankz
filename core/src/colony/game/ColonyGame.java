@@ -16,6 +16,7 @@ import colony.assets.PassThruAssetWatcher;
 import colony.assets.WatchedAsset;
 import colony.game.screens.Screen;
 import colony.game.screens.battle.BattleScreen;
+import colony.gfx.ImageData;
 import colony.gfx.RenderContext;
 import colony.gfx.TextureUtil;
 
@@ -48,6 +49,14 @@ public class ColonyGame extends ApplicationAdapter {
         return config;
     }
     
+    
+    public WatchedAsset<TextureRegion> loadTexture(ImageData image) {
+        if(image.width > 0 && image.height > 0) {            
+            return loadTexture(image.filename, image.x, image.y, image.width, image.height);
+        }
+        return loadTexture(image.filename); 
+    }
+    
     /**
      * Loads a {@link TextureRegion}
      * 
@@ -68,6 +77,10 @@ public class ColonyGame extends ApplicationAdapter {
      */
     public WatchedAsset<TextureRegion> loadTexture(String filename, int width, int height) {
         return this.watcher.loadAsset(filename, file -> TextureUtil.loadImage(file, width, height));
+    }
+    
+    public WatchedAsset<TextureRegion> loadTexture(String filename, int x, int y, int width, int height) {
+        return this.watcher.loadAsset(filename, file -> TextureUtil.subImage(TextureUtil.loadImage(file), x, y, width, height) );
     }
     
     /**
@@ -102,12 +115,17 @@ public class ColonyGame extends ApplicationAdapter {
         
         this.context = new RenderContext();
         this.context.batch = new SpriteBatch();
+        this.context.textScaleFactor = BattleScreen.GAME_HEIGHT / Gdx.graphics.getHeight();
+        
+        this.context.loadFont("./assets/gfx/fonts/Consola.ttf", "Consola");
+        this.context.setDefaultFont("Consola", 12);
 
         this.currentScreen = new BattleScreen(this, "./assets/battle_scene01.json");
     }
 
     @Override
     public void render() {
+        Gdx.gl.glClearColor(1, 1, 1, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         double newTime = TimeUtils.millis() / 1000.0;
@@ -141,6 +159,8 @@ public class ColonyGame extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
+        this.context.textScaleFactor = BattleScreen.GAME_HEIGHT * Gdx.graphics.getHeight();
+        
         this.currentScreen.resize(width, height);
     }
 

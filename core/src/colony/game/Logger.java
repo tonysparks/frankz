@@ -4,20 +4,13 @@
 package colony.game;
 
 /**
+ * Logging
+ * 
  * @author Tony
  *
  */
 public class Logger {
-
-    /**
-     * 
-     */
-    public Logger() {
-        // TODO Auto-generated constructor stub
-    }
-
-
-    
+   
     public static RuntimeException elog(Exception e) {
         return elog("", e);
     }

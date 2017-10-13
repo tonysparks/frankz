@@ -1,15 +1,68 @@
 {
     backgroundImage:  
    // "./assets/gfx/world_screen.jpg",
-    "./assets/gfx/battle_screen.jpg",
+   // "./assets/gfx/battle_screen.jpg",
+    "./assets/gfx/battle/background.png",
+    
+    slotImage: {
+        width: 536,
+        height: 314,
+        x: 0,
+        y: 0,
+    
+        filename:  "./assets/gfx/battle/slot.png"
+    },
+    
     objects: [
+        /*{
+            width: 30,
+            height: 16.453125,
+            x: 0.0,
+            y: 0.0,  
+            
+            image: {
+                filename: "./assets/gfx/battle/grid.png"
+            }
+        },*/ 
         {
             width: 0.9,
             height: 1.8,
-            x: 5.15,
+            x: 9.15,
             y: 6.0,
             
-            image: "./assets/gfx/soldiers/british/BritishSoldier_Idle.png"
-        }        
+            image: {
+                filename: "./assets/gfx/battle/objects/rock1.png"
+            }
+        },
+        {
+            width: 1.9,
+            height: 1.8,
+            x: 2.15,
+            y: 6.0,
+                         
+            image: {
+                filename: "./assets/gfx/battle/objects/rock1.png"
+            }
+        },
+        {
+            width: 2.2,
+            height: 2.4,
+            x: 4.0,
+            y: 6.2,
+                        
+            image: {
+                filename: "./assets/gfx/franks/deaconate/chunk.png"
+            }
+        },
+        {
+            width: 2.2,
+            height: 2.4,
+            x: 4.0,
+            y: 5.2,
+                                    
+            image: {
+                filename: "./assets/gfx/franks/deaconate/frank.png"
+            }
+        }      
     ]
 }

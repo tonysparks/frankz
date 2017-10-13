@@ -8,6 +8,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 
 import colony.game.Logger;
+import colony.game.screens.battle.Board.Slot;
 
 /**
  * Handles user input for the battle scene
@@ -57,7 +58,13 @@ public class BattleScreenInputProcessor implements InputProcessor {
         
         mousePos.set(screenX, screenY, 0);
         
-        Logger.log(camera.unproject(mousePos));
+        Vector3 pos = camera.unproject(mousePos); 
+        Logger.log(pos);
+        
+        Slot slot = screen.getBattleScene().getSlot(pos.x, pos.y);
+        if(slot!=null) {
+            Logger.log("Slot: " + slot.x + ", " + slot.y + " ~ " + slot.bounds.x + ", " + slot.bounds.y);
+        }
         
         return false;
     }

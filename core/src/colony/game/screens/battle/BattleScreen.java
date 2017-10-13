@@ -6,18 +6,15 @@ package colony.game.screens.battle;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 
-import colony.assets.WatchedAsset;
 import colony.game.ColonyGame;
 import colony.game.TimeStep;
 import colony.game.screens.Screen;
-import colony.game.screens.battle.Board.Slot;
 import colony.gfx.RenderContext;
 
 /**
@@ -30,14 +27,16 @@ public class BattleScreen implements Screen {
      * Battle scene is 100ft x 100ft which is roughly
      * 30m x 30m
      */
-    private static final float GAME_WIDTH  = 30;
-    private static final float GAME_HEIGHT = 30;
+    public static final float GAME_WIDTH  = 30;
+    public static final float GAME_HEIGHT = 30;
     
-    private OrthographicCamera camera;
+    private OrthographicCamera camera, hudCamera;
     private Matrix4 transform;
     private ShapeRenderer shapes;
     
-    private WatchedAsset<BattleScene> battleScene;
+    private BattleScene battleScene;
+    
+    private Hud hud; 
     
     /**
      * 
@@ -50,11 +49,18 @@ public class BattleScreen implements Screen {
         float h = Gdx.graphics.getHeight();
         
         this.camera = new OrthographicCamera();
-        this.camera.setToOrtho(true, GAME_WIDTH, GAME_HEIGHT * (h / w));     
+        this.camera.setToOrtho(true, GAME_WIDTH, GAME_HEIGHT  * (h / w));     
         this.camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
         this.camera.update();
         
-        this.battleScene = BattleScene.loadScene(game, this.camera, battleSceneFile);
+        this.hudCamera = new OrthographicCamera();
+        this.hudCamera.setToOrtho(true, w, h);     
+        this.hudCamera.position.set(hudCamera.viewportWidth / 2f, hudCamera.viewportHeight / 2f, 0);
+        this.hudCamera.update();
+        
+        this.hud = new Hud(this.hudCamera);
+        
+        this.battleScene = BattleScene.loadScene(game, this.hud, this.camera, battleSceneFile);
         
         Gdx.input.setInputProcessor(new BattleScreenInputProcessor(this));
     }
@@ -66,23 +72,30 @@ public class BattleScreen implements Screen {
         return camera;
     }
     
+    /**
+     * @return the battleScene
+     */
+    public BattleScene getBattleScene() {
+        return battleScene;
+    }
+    
 
     @Override
     public void update(TimeStep timeStep) {
         handleInput();
         
-        this.battleScene.getAsset().update(timeStep);
+        this.battleScene.update(timeStep);
     }
 
     @Override
     public void render(RenderContext context) {
         this.camera.update();
-        
-        context.batch.setProjectionMatrix(this.camera.combined);
-        context.batch.setTransformMatrix(this.transform);
+                
+        context.setProjectionTransform(this.camera.combined, this.transform);
 
         shapes.setProjectionMatrix(this.camera.combined);
         shapes.setTransformMatrix(this.transform);
+        
         
         float effectiveViewportWidth = camera.viewportWidth;// * camera.zoom;
         float effectiveViewportHeight = camera.viewportHeight;// * camera.zoom;
@@ -90,9 +103,14 @@ public class BattleScreen implements Screen {
         
         context.batch.begin();       
         
-        BattleScene scene = this.battleScene.getAsset();
-        scene.render(context);
+        this.battleScene.render(context);
         
+        context.batch.end();
+
+        context.setProjectionTransform(this.hudCamera.combined, this.transform);
+        
+        context.batch.begin();
+        this.hud.render(context);
         context.batch.end();
     }
     

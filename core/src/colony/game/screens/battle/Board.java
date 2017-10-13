@@ -29,8 +29,11 @@ public class Board {
         /**
          * The world coordinate size of a slot 
          */
-        public static final float WIDTH = 1.524f, 
-                                  HEIGHT = 1.524f;
+//        public static final float WIDTH = 0.97f, //1.524f / 2.0f, 
+//                                  HEIGHT = 0.97f; // 1.524f / 2.0f;
+        
+        public static final float WIDTH = 1.201524f, 
+                                  HEIGHT = WIDTH;
         
         /**
          * Array index positions
@@ -87,7 +90,10 @@ public class Board {
      * @return the slot
      */
     public Slot getSlotByIndex(int indexX, int indexY) {
-        return this.slots[indexY][indexX];
+        if(indexX >= 0 && indexX < Board.WIDTH && indexY >= 0 && indexY < Board.HEIGHT) {
+            return this.slots[indexY][indexX];
+        }
+        return null;
     }
 
     
