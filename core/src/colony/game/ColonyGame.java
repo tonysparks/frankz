@@ -4,11 +4,13 @@ import java.io.File;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.utils.TimeUtils;
 
+import colony.assets.AssetLoader;
 import colony.assets.AssetWatcher;
 import colony.assets.FileSystemAssetWatcher;
 import colony.assets.JsonAssetLoader;
@@ -19,6 +21,7 @@ import colony.game.screens.battle.BattleScreen;
 import colony.gfx.ImageData;
 import colony.gfx.RenderContext;
 import colony.gfx.TextureUtil;
+import colony.sfx.Sounds;
 
 public class ColonyGame extends ApplicationAdapter {
     private TimeStep timeStep;
@@ -47,6 +50,22 @@ public class ColonyGame extends ApplicationAdapter {
      */
     public WatchedAsset<Config> getConfig() {
         return config;
+    }
+    
+    
+    /**
+     * Loads a {@link Sound}
+     * 
+     * @param filename
+     * @return the Sound
+     */
+    public WatchedAsset<Sound> loadSound(String filename) {
+        return this.watcher.loadAsset(filename, new AssetLoader<Sound>() {            
+            @Override
+            public Sound loadAsset(String filename) {
+                return Gdx.audio.newSound(Gdx.files.internal(filename));
+            }
+        });
     }
     
     
@@ -119,7 +138,9 @@ public class ColonyGame extends ApplicationAdapter {
         
         this.context.loadFont("./assets/gfx/fonts/Consola.ttf", "Consola");
         this.context.setDefaultFont("Consola", 12);
-
+        
+        Sounds.init(this);
+        
         this.currentScreen = new BattleScreen(this, "./assets/battle_scene01.json");
     }
 
@@ -166,6 +187,7 @@ public class ColonyGame extends ApplicationAdapter {
 
     @Override
     public void dispose() {
+        Sounds.destroy();
         this.watcher.stopWatching();
     }
 }

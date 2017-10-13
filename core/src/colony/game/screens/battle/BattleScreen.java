@@ -11,6 +11,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
+import com.badlogic.gdx.math.Vector3;
 
 import colony.game.ColonyGame;
 import colony.game.TimeStep;
@@ -38,6 +39,9 @@ public class BattleScreen implements Screen {
     
     private Hud hud; 
     
+    private BattleScreenInputProcessor inputProcessor;
+    
+    
     /**
      * 
      */
@@ -62,7 +66,9 @@ public class BattleScreen implements Screen {
         
         this.battleScene = BattleScene.loadScene(game, this.hud, this.camera, battleSceneFile);
         
-        Gdx.input.setInputProcessor(new BattleScreenInputProcessor(this));
+        this.inputProcessor = new BattleScreenInputProcessor(this);
+        
+        Gdx.input.setInputProcessor(this.inputProcessor);
     }
     
     /**
@@ -156,6 +162,9 @@ public class BattleScreen implements Screen {
 
         camera.position.x = MathUtils.clamp(camera.position.x, effectiveViewportWidth / 2f, maxZoom - effectiveViewportWidth / 2f);
         camera.position.y = MathUtils.clamp(camera.position.y, effectiveViewportHeight / 2f, maxZoom - effectiveViewportHeight / 2f);
+                
+        Vector3 pos = camera.unproject(this.inputProcessor.getMousePos());  
+        this.battleScene.setHighlightedSlot(pos.x, pos.y);
         
     }
 

@@ -19,15 +19,24 @@ import colony.game.screens.battle.Board.Slot;
 public class BattleScreenInputProcessor implements InputProcessor {
 
     private BattleScreen screen;
-    private Vector3 mousePos;
+    private Vector3 mousePos, mousePosCopy;
     /**
      * @param screen
      */
     public BattleScreenInputProcessor(BattleScreen screen) {
         this.screen = screen;
         this.mousePos = new Vector3();
+        this.mousePosCopy = new Vector3();
     }
 
+    /**
+     * @return the mousePos
+     */
+    public Vector3 getMousePos() {
+        this.mousePosCopy.set(this.mousePos);
+        return this.mousePosCopy;
+    }
+    
     @Override
     public boolean keyDown(int keycode) {
         // TODO Auto-generated method stub
@@ -77,7 +86,7 @@ public class BattleScreenInputProcessor implements InputProcessor {
 
     @Override
     public boolean mouseMoved(int screenX, int screenY) {
-        // TODO Auto-generated method stub
+        mousePos.set(screenX, screenY, 0);
         return false;
     }
 

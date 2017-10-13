@@ -13,6 +13,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -39,7 +40,7 @@ public class FileSystemAssetWatcher implements AssetWatcher {
         private AssetLoader<T> loader;  
         private String assetName;
         private File filename;
-        private Consumer<T> onChanged;
+        private List<Consumer<T>> onChanged;
         
         /**
          * @param filename
@@ -50,6 +51,8 @@ public class FileSystemAssetWatcher implements AssetWatcher {
             this.asset = new AtomicReference<T>();
             this.loader = loader;
             this.filename = filename;
+            
+            this.onChanged = new ArrayList<>();
             
             assetChanged();
         }
@@ -75,14 +78,22 @@ public class FileSystemAssetWatcher implements AssetWatcher {
         
         @Override
         public WatchedAsset<T> onAssetChanged(Consumer<T> onChanged) {
-            this.onChanged = onChanged;
+            this.onChanged.add(onChanged);
             return this;
         }
         
         @Override
         public WatchedAsset<T> touch() {
-            if(this.onChanged!=null) {
-                this.onChanged.accept(getAsset());
+            if(!this.onChanged.isEmpty()) {
+                this.onChanged.forEach(consumer -> consumer.accept(getAsset()));                
+            }
+            return this;
+        }
+        
+        @Override
+        public WatchedAsset<T> touchLast() {
+            if(!this.onChanged.isEmpty()) {
+                this.onChanged.get(this.onChanged.size()-1).accept(getAsset());
             }
             return this;
         }

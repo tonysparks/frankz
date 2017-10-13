@@ -3,6 +3,8 @@
  */
 package colony.assets;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
@@ -22,13 +24,14 @@ public class PassThruAssetWatcher implements AssetWatcher {
     class WatchedAssetImpl<T> implements WatchedAsset<T> {
 
         private final T asset;                
-        private Consumer<T> onChanged;
+        private List<Consumer<T>> onChanged;
         
         /**
          * @param asset
          */
         public WatchedAssetImpl(T asset) {
             this.asset = asset;
+            this.onChanged = new ArrayList<>();
             assetChanged();
         }
 
@@ -48,18 +51,25 @@ public class PassThruAssetWatcher implements AssetWatcher {
         
         @Override
         public WatchedAsset<T> onAssetChanged(Consumer<T> onChanged) {
-            this.onChanged = onChanged;
+            this.onChanged.add(onChanged);
             return this;
         }
         
         @Override
         public WatchedAsset<T> touch() {
-            if(this.onChanged != null) {
-                this.onChanged.accept(getAsset());
+            if(!this.onChanged.isEmpty()) {
+                this.onChanged.forEach(consumer -> consumer.accept(getAsset()));                
             }
             return this;
         }
         
+        @Override
+        public WatchedAsset<T> touchLast() {
+            if(!this.onChanged.isEmpty()) {
+                this.onChanged.get(this.onChanged.size()-1).accept(getAsset());
+            }
+            return this;
+        }
     }
     
     private Queue<Supplier<WatchedAsset<?>>> queuedTouches;

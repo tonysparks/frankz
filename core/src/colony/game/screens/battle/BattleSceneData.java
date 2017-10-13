@@ -28,8 +28,14 @@ public class BattleSceneData {
         public ImageData image;
     }
 
+    public static class TileHighlight {
+        public ImageData image;
+        public String color;
+    }
+    
     public String backgroundImage;
     public ImageData slotImage;
+    public TileHighlight tileHighlight;
     public SceneObject[] objects;   
 
 }

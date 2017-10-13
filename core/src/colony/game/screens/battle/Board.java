@@ -31,8 +31,8 @@ public class Board {
          */
 //        public static final float WIDTH = 0.97f, //1.524f / 2.0f, 
 //                                  HEIGHT = 0.97f; // 1.524f / 2.0f;
-        
-        public static final float WIDTH = 1.201524f, 
+        //1.46304f
+        public static final float WIDTH = 1.42304f, //1.201524f, 
                                   HEIGHT = WIDTH;
         
         /**

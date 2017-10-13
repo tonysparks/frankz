@@ -13,6 +13,18 @@
         filename:  "./assets/gfx/battle/slot.png"
     },
     
+    tileHighlight: {
+        color: "#0000ffff",
+        image: {
+            width: 536,
+            height: 314,
+            x: 0,
+            y: 0,
+        
+            filename:  "./assets/gfx/battle/slot.png"
+        }
+    },
+    
     objects: [
         /*{
             width: 30,

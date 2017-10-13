@@ -48,4 +48,12 @@ public interface WatchedAsset<T> {
      * @return
      */
     public WatchedAsset<T> touch();
+    
+    /**
+     * Triggers the onAssetChanged callback for the 
+     * last asset changed listener
+     * 
+     * @return
+     */
+    public WatchedAsset<T> touchLast();
 }
