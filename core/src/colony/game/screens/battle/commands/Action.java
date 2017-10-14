@@ -15,6 +15,7 @@ import colony.gfx.Renderable;
 public interface Action extends Renderable {
 
     void start();
+    void end();
     void cancel();
     
     CommandResult status();

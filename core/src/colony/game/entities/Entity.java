@@ -3,7 +3,6 @@
  */
 package colony.game.entities;
 
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -97,20 +96,18 @@ public class Entity implements Updatable, PositionableRenderable {
         float offsetX = this.bounds.width / 2;
         float offsetY = this.bounds.height;
       
-        this.pos.x -= offsetX - 0.2f;
-        this.pos.y -= offsetY - 0.2f;
+        x -= offsetX - 0.2f;
+        y -= offsetY - 0.2f;
         
-        this.bounds.setPosition(this.pos.x, this.pos.y);
+        this.bounds.setPosition(x, y);
         return this;
     }
     
     public Entity moveBy(float deltaX, float deltaY) {
-        this.pos.x += deltaX;
-        this.pos.y += deltaY;
-        this.bounds.setPosition(this.pos.x, this.pos.y);
+        setPos(this.pos.x + deltaX, this.pos.y + deltaY);
         return this;
     }
-    
+        
     @Override
     public float getX() {    
         return pos.x;
@@ -131,9 +128,10 @@ public class Entity implements Updatable, PositionableRenderable {
         this.model.render(context);    
         
         
-        context.batch.end();
-        context.drawRect(pos.x, pos.y, bounds.width, bounds.height, Color.GOLD);
-        context.batch.begin();
+//        context.batch.end();
+//        context.drawRect(bounds.x, bounds.y, bounds.width, bounds.height, Color.GOLD);
+//        context.drawRect(pos.x, pos.y, 0.15f, 0.15f, Color.BLUE);
+//        context.batch.begin();
                 
     }
 }

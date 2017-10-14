@@ -47,7 +47,7 @@ public class MoveToCommand extends Command {
         Slot start = scene.getSlot(parameters.selectedEntity);
         Slot end = parameters.targetSlot;
         
-        this.pathPlanner = scene.newPathPlanner();
+        this.pathPlanner = scene.newPathPlanner(parameters.selectedEntity);
         this.pathPlanner.findPath(start, end);
         
         if(!this.pathPlanner.hasPath()) {
@@ -71,7 +71,7 @@ public class MoveToCommand extends Command {
                     
                     Sprite sprite = scene.getTileHighlighter();
                     Vector3 worldPos = scene.getWorldPos(node.getValue());
-                    sprite.setPosition(worldPos.x, worldPos.y);
+                    sprite.setPosition(worldPos.x-BattleScene.tileHalfWidth, worldPos.y-BattleScene.tileHalfHeight);
                     sprite.draw(context.batch);
                 }
             }
@@ -106,6 +106,12 @@ public class MoveToCommand extends Command {
 
             @Override
             public void start() {                
+            }
+            
+            @Override
+            public void end() {
+                // snap the entity to the appropriate slot center
+                parameters.selectedEntity.setPos(scene.getWorldPos(parameters.targetSlot));
             }
 
             @Override

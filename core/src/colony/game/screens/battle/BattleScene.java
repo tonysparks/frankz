@@ -10,6 +10,7 @@ import java.util.Optional;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector3;
 
 import colony.game.Faction;
@@ -19,6 +20,7 @@ import colony.game.entities.Entity;
 import colony.game.screens.battle.BattleSceneData.EntityRefData;
 import colony.game.screens.battle.BattleSceneData.SceneObject;
 import colony.game.screens.battle.Board.Slot;
+import colony.game.screens.battle.commands.Command;
 import colony.game.screens.battle.commands.CommandParameters;
 import colony.game.screens.battle.commands.CommandQueue;
 import colony.game.screens.battle.commands.MoveToCommand;
@@ -26,9 +28,6 @@ import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 import colony.gfx.SpriteRenderable;
-import colony.graph.Edge;
-import colony.graph.Edges.Directions;
-import colony.graph.GraphNode;
 import colony.sfx.Sounds;
 import colony.util.Timer;
 
@@ -151,17 +150,18 @@ public class BattleScene implements Renderable {
     
     private Hud hud;
     private Vector3 worldPos;
+    private Rectangle bounds;
     private int index;
     
     private static final float startX = 14.8f;
     private static final float startY = 1.7f;
         
-    private static final float tileHalfWidth  = Board.Slot.WIDTH;
-    private static final float tileHalfHeight = Board.Slot.HEIGHT/2.0f;
+    public static final float tileHalfWidth  = Board.Slot.WIDTH;
+    public static final float tileHalfHeight = Board.Slot.HEIGHT/2.0f;
     
     //private static final float tileSpriteWidth  = 1.4f * 2.0f;
-    private static final float tileSpriteWidth  = Board.Slot.WIDTH * 2.0f;
-    private static final float tileSpriteHeight = tileSpriteWidth / 2.0f;
+    public static final float tileSpriteWidth  = Board.Slot.WIDTH * 2.0f;
+    public static final float tileSpriteHeight = tileSpriteWidth / 2.0f;
     
     private Slot highlightedSlot;
     private Timer highlightTimer;
@@ -192,6 +192,9 @@ public class BattleScene implements Renderable {
         
         this.board = new Board();
         this.worldPos = new Vector3();
+        this.bounds = new Rectangle();
+        this.bounds.width = Slot.WIDTH / 2;
+        this.bounds.height = Slot.HEIGHT / 2;
         
         this.highlightTimer = new Timer(true, 33);
         
@@ -206,7 +209,7 @@ public class BattleScene implements Renderable {
         this.commandQueue.update(timeStep);
         
         if(this.highlightedSlot != null) {
-            Vector3 worldPos = getSlotScreenPos(this.highlightedSlot);
+            Vector3 worldPos = getWorldPos(this.highlightedSlot);
             this.tileHighlighter.setPosition(worldPos.x - tileHalfWidth, worldPos.y - tileHalfHeight);            
         }                
         
@@ -224,17 +227,18 @@ public class BattleScene implements Renderable {
     public void render(RenderContext context) {
         this.backgroundSprite.draw(context.batch);
                 
-        //hud.setFont("Consola", 12);               
         this.index = 0;
         
         this.board.forEachSlot( slot -> {                        
-            Vector3 worldPos = getSlotScreenPos(slot);
+            Vector3 worldPos = getWorldPos(slot);
 
             Sprite sprite = slotImages[this.index++];
             sprite.setPosition(worldPos.x - tileHalfWidth, worldPos.y - tileHalfHeight);
             sprite.draw(context.batch);
             
+            
             /*
+            hud.setFont("Consola", 12);               
             float x = worldPos.x;
             float y = worldPos.y;
             
@@ -245,21 +249,39 @@ public class BattleScene implements Renderable {
             
             String str = String.format("%3.2f, %3.2f", x, y);
             hud.drawString( str, screenPos.x-25, screenPos.y+15, Color.RED);
-            */
+            
+            if(this.index  == 17) 
+            {
+                context.batch.end();
+                
+                GraphNode<Slot> node = this.graph.getNode(slot);
+                context.fillRect(worldPos.x, worldPos.y, 0.12f, 0.12f, Color.RED);
+                float wx = worldPos.x;
+                float wy = worldPos.y;
+                for(int i = 0; i < node.edges().size(); i++) {
+                    Edge<Slot> edge = node.edges().get(i);
+                    if(edge != null) {                        
+                        worldPos = getSlotScreenPos(edge.getRight().getValue());                    
+                        context.drawLine(wx, wy, worldPos.x, worldPos.y, Color.BLUE);
+                    }
+                }
+                context.batch.begin();
+            }*/
         });
         
         if(this.highlightedSlot != null) {
             this.tileHighlighter.draw(context.batch);
         }
         
-        if(this.selectedEntity != null) {
-            context.batch.end();
-            context.drawRect(selectedEntity.pos.x, selectedEntity.pos.y, selectedEntity.bounds.width, selectedEntity.bounds.height, Color.PINK);
-            context.batch.begin();
-        }
-
         for(int i = 0; i < this.renderables.size(); i++) {
             this.renderables.get(i).render(context);
+        }
+        
+
+        if(this.selectedEntity != null) {
+            context.batch.end();
+            context.drawRect(selectedEntity.bounds.x, selectedEntity.bounds.y, selectedEntity.bounds.width, selectedEntity.bounds.height, Color.PINK);
+            context.batch.begin();
         }
         
         this.commandQueue.render(context);
@@ -276,8 +298,8 @@ public class BattleScene implements Renderable {
     /**
      * @return the pathPlanner
      */
-    public PathPlanner newPathPlanner() {
-        return new PathPlanner(this, this.graph);
+    public PathPlanner newPathPlanner(Entity ent) {
+        return new PathPlanner(this, this.graph, ent);
     }
     
 
@@ -309,15 +331,27 @@ public class BattleScene implements Renderable {
     public Sprite getTileHighlighter() {
         return tileHighlighter;
     }
+        
     
-    private Vector3 getSlotScreenPos(Slot slot) {
-        return getWorldPos(slot.x, slot.y);
-    }
-    
+    /**
+     * Get the world position of the {@link Slot}
+     * 
+     * @param slot
+     * @return the world position of the {@link Slot}
+     */
     public Vector3 getWorldPos(Slot slot) {
         return getWorldPos(slot.x, slot.y);
     }
     
+    
+    /**
+     * Given the array index values, give the corresponding world
+     * coordinates.
+     * 
+     * @param indexX
+     * @param indexY
+     * @return
+     */
     public Vector3 getWorldPos(int indexX, int indexY) {
         worldPos.x = ((indexX - indexY) * tileHalfWidth)  + startX;
         worldPos.y = ((indexX + indexY) * tileHalfHeight) + tileHalfHeight + startY;
@@ -325,6 +359,13 @@ public class BattleScene implements Renderable {
         return worldPos;
     }
     
+    
+    /**
+     * Select a {@link Slot}
+     * 
+     * @param worldX
+     * @param worldY
+     */
     public void selectSlot(float worldX, float worldY) {
         Slot slot = getSlot(worldX, worldY);
         if(slot != null) {
@@ -332,6 +373,14 @@ public class BattleScene implements Renderable {
         }
     }
     
+    
+    /**
+     * Selects an {@link Entity} who makes them eligible for dispatching
+     * {@link Command}s to.
+     * 
+     * @param worldX
+     * @param worldY
+     */
     public void selectEntity(float worldX, float worldY) {
         // first try to see if the user selected by clicking
         // on the Entity
@@ -359,11 +408,23 @@ public class BattleScene implements Renderable {
         }
     }
     
+    
+    /**
+     * If there is a Selected entity
+     * 
+     * @return true if there is a selected entity
+     */
     public boolean hasSelectedEntity() {
         return this.selectedEntity != null;
     }
     
-    public void issueMoveToCommand() {
+    
+    /**
+     * Issues a {@link MoveToCommand} for the selected entity
+     * 
+     * @see #selectEntity(float, float)
+     */
+    public void issueMoveToCommand() {        
         this.commandQueue.addCommand(new MoveToCommand(new CommandParameters(this.selectedEntity, this.selectedSlot)));
         
         this.selectedEntity = null;
@@ -385,17 +446,46 @@ public class BattleScene implements Renderable {
     }
     
     /**
+     * Determines if the supplied {@link Entity} is on the supplied {@link Slot}
+     * 
+     * @param ent
+     * @param slot
+     * @return true if the {@link Entity} is stationed on the {@link Slot}
+     */
+    public boolean isEntityOnSlot(Entity ent, Slot slot) {
+        Vector3 worldPos = getWorldPos(slot);
+        bounds.setCenter(worldPos.x, worldPos.y);        
+        return bounds.contains(ent.getPos());
+    }
+    
+    /**
      * Get the {@link Entity} occupying this {@link Slot}
      * 
      * @param slot
      * @return the entity or null if none
      */
-    public Optional<Entity> getEntityOnSlot(Slot slot) {        
-        Vector3 worldPos = getWorldPos(slot.x, slot.y);
+    public Optional<Entity> getEntityOnSlot(Slot slot) {                        
+        Optional<Entity> entity = this.attacker.getEntities()
+                                               .stream()
+                                               .filter( ent -> isEntityOnSlot(ent, slot))
+                                               .findFirst();
         
-        return findEntity(worldPos.x, worldPos.y);        
+        if(!entity.isPresent()) {
+            entity = this.defender.getEntities()
+                                  .stream()
+                                  .filter( ent -> isEntityOnSlot(ent, slot))
+                                  .findFirst();
+        }
+        
+        return entity;        
     }
     
+    /**
+     * Get the {@link Slot} this entity is on
+     * 
+     * @param entity
+     * @return the slot
+     */
     public Slot getSlot(Entity entity) {
         return getSlot(entity.getX(), entity.getY());
     }
@@ -417,7 +507,6 @@ public class BattleScene implements Renderable {
         
         int indexX = x / 2;
         int indexY = y / 2;
-        //Logger.log("Index: " + indexX + ", " + indexY);
         
         return this.board.getSlotByIndex(indexX, indexY);
     }

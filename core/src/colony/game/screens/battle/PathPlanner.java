@@ -6,6 +6,7 @@ package colony.game.screens.battle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -32,7 +33,7 @@ public class PathPlanner {
     private int currentNode;
     private Vector2 nextWaypoint;
     private Vector2 finalDestination;    
-    
+    private Entity entity;
     private BattleScene scene;
     
     public class SearchPath extends AStarGraphSearch<Slot> {
@@ -66,7 +67,8 @@ public class PathPlanner {
         @Override
         protected boolean shouldIgnore(GraphNode<Slot> node) {
             Slot slot = node.getValue();
-            return scene.getEntityOnSlot(slot).isPresent();
+            Optional<Entity> ent = scene.getEntityOnSlot(slot); 
+            return ent.isPresent() && ent.get() != entity;
         }
     }
     
@@ -74,9 +76,10 @@ public class PathPlanner {
     /**
      * @param path
      */
-    public PathPlanner(BattleScene scene, BoardGraph graph) {
+    public PathPlanner(BattleScene scene, BoardGraph graph, Entity entity) {
         this.scene = scene;
         this.graph = graph;
+        this.entity = entity;
         
         this.finalDestination = new Vector2();
         this.nextWaypoint = new Vector2();
@@ -193,15 +196,18 @@ public class PathPlanner {
         
             Vector3 worldPos = scene.getWorldPos(slot);
             
-            float centerX = worldPos.x + slot.bounds.width/2;
-            float centerY = worldPos.y + slot.bounds.height/2;
-            if( Math.abs(centerX - x) < Slot.WIDTH/8 &&
-                Math.abs(centerY - y) < Slot.HEIGHT/8) {
+            float centerX = worldPos.x;
+            float centerY = worldPos.y;
+            
+            // if we've arrived at the destination slot 
+            // let's set the way point to the next slot
+            if( Math.abs(cPos.len() - Vector2.len(centerX, centerY)) < 0.15) {
                 currentNode++;
             }
             
             nextWaypoint.x = (centerX - x);
             nextWaypoint.y = (centerY - y);
+              
             return nextWaypoint;
         }
 

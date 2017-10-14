@@ -58,8 +58,8 @@ public class EntityModel implements Renderable {
     
     @Override
     public void render(RenderContext context) {
-        float x = entity.pos.x;
-        float y = entity.pos.y;
+        float x = entity.bounds.x;
+        float y = entity.bounds.y;
                 
         this.sprite.setPosition(x, y);
         this.sprite.draw(context.batch);

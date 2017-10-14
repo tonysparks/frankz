@@ -6,6 +6,7 @@ package colony.game.screens.battle.commands;
 import java.util.LinkedList;
 import java.util.Queue;
 
+import colony.game.Logger;
 import colony.game.TimeStep;
 import colony.game.screens.battle.BattleScene;
 import colony.gfx.RenderContext;
@@ -42,6 +43,10 @@ public class CommandQueue implements Renderable {
     @Override
     public void update(TimeStep timeStep) {
         if(this.currentAction == null || !this.currentAction.status().inProgress()) {
+            if(this.currentAction != null) {
+              //  this.currentAction.end();
+            }
+            
             this.currentAction = null;
             
             if(!this.commandQueue.isEmpty()) {
@@ -49,6 +54,7 @@ public class CommandQueue implements Renderable {
                 CommandResult result = cmd.checkPreconditions(scene);
                 if(result.isFailure()) {
                     // TODO: Send notification of failure
+                    Logger.log("** Failed command preconditions: " + result.getMessage());
                 }
                 else {
                     this.currentAction = cmd.createAction(scene);
