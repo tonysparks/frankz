@@ -5,18 +5,30 @@ package colony.game.screens.battle;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
-import colony.game.ColonyGame;
+import colony.game.Faction;
+import colony.game.Game;
 import colony.game.TimeStep;
+import colony.game.entities.Entity;
+import colony.game.screens.battle.BattleSceneData.EntityRefData;
 import colony.game.screens.battle.BattleSceneData.SceneObject;
 import colony.game.screens.battle.Board.Slot;
+import colony.game.screens.battle.commands.CommandParameters;
+import colony.game.screens.battle.commands.CommandQueue;
+import colony.game.screens.battle.commands.MoveToCommand;
+import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
+import colony.gfx.SpriteRenderable;
+import colony.graph.Edge;
+import colony.graph.Edges.Directions;
+import colony.graph.GraphNode;
 import colony.sfx.Sounds;
 import colony.util.Timer;
 
@@ -35,7 +47,7 @@ public class BattleScene implements Renderable {
      * @param battleSceneFile
      * @return
      */
-    public static BattleScene loadScene(ColonyGame game, Hud hud, OrthographicCamera camera, String battleSceneFile) {
+    public static BattleScene loadScene(Game game, Hud hud, OrthographicCamera camera, String battleSceneFile) {
         final BattleScene scene = new BattleScene();
         scene.camera = camera;
         scene.hud = hud;
@@ -83,9 +95,44 @@ public class BattleScene implements Renderable {
                     sprite.flip(object.flipX, object.flipY);
                 }).touch();
                 
-                scene.sceneObjectSprites.add(sprite);
-                scene.sceneObjectSprites.sort( (a,b) -> (int)a.getY() - (int)b.getY());
+                scene.sceneObjectSprites.add(new SpriteRenderable(sprite));                
             }
+            
+            
+            if(data.attacker != null) {
+                scene.attacker = new Faction(data.attacker.name);
+                for(EntityRefData entData : data.attacker.entities) {
+                    Entity ent = Entity.loadEntity(game, entData.entityData);
+                    scene.attacker.addEntity(ent);
+                    
+                    Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
+                    //worldPos.x -= tileHalfWidth;
+                    //worldPos.y -= tileHalfHeight;
+                    
+                    ent.setPos(worldPos);
+                }
+            }
+            else {
+                scene.attacker = new Faction("<undefined>");
+            }
+            
+            if(data.defender != null) {
+                scene.defender = new Faction(data.defender.name);
+                for(EntityRefData entData : data.defender.entities) {
+                    Entity ent = Entity.loadEntity(game, entData.entityData);
+                    scene.defender.addEntity(ent);
+                    
+                    Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
+                    //worldPos.x -= tileHalfWidth;
+                    //worldPos.y -= tileHalfHeight;
+                    
+                    ent.setPos(worldPos);
+                }
+            }
+            else {
+                scene.defender = new Faction("<undefined>");
+            }
+            
         }).touch();
         
         return scene;
@@ -96,7 +143,7 @@ public class BattleScene implements Renderable {
     private Sprite[] slotImages;
     private Sprite tileHighlighter;
     
-    private List<Sprite> sceneObjectSprites;
+    private List<PositionableRenderable> sceneObjectSprites;
     
     private Board board;
     
@@ -119,6 +166,18 @@ public class BattleScene implements Renderable {
     private Slot highlightedSlot;
     private Timer highlightTimer;
     
+    private Faction attacker;
+    private Faction defender;
+    
+    private List<PositionableRenderable> renderables;
+    
+    private Entity selectedEntity;
+    private Slot selectedSlot;
+        
+    private BoardGraph graph;
+    
+    private CommandQueue commandQueue;
+    
     /**
      * 
      */
@@ -127,23 +186,38 @@ public class BattleScene implements Renderable {
         this.tileHighlighter = new Sprite();
         this.sceneObjectSprites = new ArrayList<>();
         
+        this.renderables = new ArrayList<>();
+        
         this.slotImages = new Sprite[Board.HEIGHT * Board.WIDTH];
         
         this.board = new Board();
         this.worldPos = new Vector3();
         
         this.highlightTimer = new Timer(true, 33);
+        
+        this.graph = new BoardGraph(board);   
+        
+        this.commandQueue = new CommandQueue(this);
     }
     
     
     @Override
     public void update(TimeStep timeStep) {
+        this.commandQueue.update(timeStep);
+        
         if(this.highlightedSlot != null) {
             Vector3 worldPos = getSlotScreenPos(this.highlightedSlot);
             this.tileHighlighter.setPosition(worldPos.x - tileHalfWidth, worldPos.y - tileHalfHeight);            
         }                
         
         this.highlightTimer.update(timeStep);
+        
+        this.renderables.clear();
+        this.renderables.addAll(this.attacker.getEntities());
+        this.renderables.addAll(this.defender.getEntities());
+        this.renderables.addAll(this.sceneObjectSprites);
+        
+        this.renderables.sort( (a,b) -> (int)a.getY() - (int)b.getY());
     }
     
     @Override
@@ -177,14 +251,35 @@ public class BattleScene implements Renderable {
         if(this.highlightedSlot != null) {
             this.tileHighlighter.draw(context.batch);
         }
+        
+        if(this.selectedEntity != null) {
+            context.batch.end();
+            context.drawRect(selectedEntity.pos.x, selectedEntity.pos.y, selectedEntity.bounds.width, selectedEntity.bounds.height, Color.PINK);
+            context.batch.begin();
+        }
 
-        for(int i = 0; i < this.sceneObjectSprites.size(); i++) {
-            this.sceneObjectSprites.get(i).draw(context.batch);
+        for(int i = 0; i < this.renderables.size(); i++) {
+            this.renderables.get(i).render(context);
         }
         
+        this.commandQueue.render(context);
 
     }
 
+    /**
+     * @return the graph
+     */
+    public BoardGraph getGraph() {
+        return graph;
+    }
+    
+    /**
+     * @return the pathPlanner
+     */
+    public PathPlanner newPathPlanner() {
+        return new PathPlanner(this, this.graph);
+    }
+    
 
     /**
      * Set the highlighted slot
@@ -197,7 +292,7 @@ public class BattleScene implements Renderable {
         if(slot != null) {
             if(this.highlightedSlot != slot) {
                 if(this.highlightedSlot == null || this.highlightTimer.isTime()) {
-                    Sounds.playSound(Sounds.uiSlotHover);
+                    //Sounds.playSound(Sounds.uiSlotHover);
                 }
             }
             
@@ -208,11 +303,101 @@ public class BattleScene implements Renderable {
         }
     }
     
+    /**
+     * @return the tileHighlighter
+     */
+    public Sprite getTileHighlighter() {
+        return tileHighlighter;
+    }
+    
     private Vector3 getSlotScreenPos(Slot slot) {
-        worldPos.x = ((slot.x - slot.y) * tileHalfWidth)  + startX;
-        worldPos.y = ((slot.x + slot.y) * tileHalfHeight) + tileHalfHeight + startY;
+        return getWorldPos(slot.x, slot.y);
+    }
+    
+    public Vector3 getWorldPos(Slot slot) {
+        return getWorldPos(slot.x, slot.y);
+    }
+    
+    public Vector3 getWorldPos(int indexX, int indexY) {
+        worldPos.x = ((indexX - indexY) * tileHalfWidth)  + startX;
+        worldPos.y = ((indexX + indexY) * tileHalfHeight) + tileHalfHeight + startY;
         
         return worldPos;
+    }
+    
+    public void selectSlot(float worldX, float worldY) {
+        Slot slot = getSlot(worldX, worldY);
+        if(slot != null) {
+            this.selectedSlot = slot;
+        }
+    }
+    
+    public void selectEntity(float worldX, float worldY) {
+        // first try to see if the user selected by clicking
+        // on the Entity
+        Optional<Entity> ent = findEntity(worldX, worldY);
+        
+        // if the didn't touch any entity, see if they selected
+        // by clicking on the Slot
+        if(!ent.isPresent()) {                        
+            Slot slot = getSlot(worldX, worldY);
+            if(slot!=null) {                                
+                ent = getEntityOnSlot(slot);
+            }
+        }
+        
+        if(ent.isPresent()) {
+            this.selectedEntity = ent.get();
+            Sounds.playSound(Sounds.uiSlotSelect);
+        }
+        else {
+            if(this.selectedEntity != null) {
+                Sounds.playSound(Sounds.uiSlotSelect);
+            }
+            
+            this.selectedEntity = null;
+        }
+    }
+    
+    public boolean hasSelectedEntity() {
+        return this.selectedEntity != null;
+    }
+    
+    public void issueMoveToCommand() {
+        this.commandQueue.addCommand(new MoveToCommand(new CommandParameters(this.selectedEntity, this.selectedSlot)));
+        
+        this.selectedEntity = null;
+        this.selectedSlot = null;
+    }
+    
+    private Optional<Entity> findEntity(float worldX, float worldY) {
+        Optional<Entity> ent = findEntity(this.attacker.getEntities(), worldX, worldY);
+        if(!ent.isPresent()) {
+            ent = findEntity(this.defender.getEntities(), worldX, worldY);
+        }
+        return ent;
+    }
+    
+    private Optional<Entity> findEntity(List<Entity> entities, float worldX, float worldY) {
+        return entities.stream()
+                .filter( ent -> ent.bounds.contains(worldX, worldY))
+                .findFirst();
+    }
+    
+    /**
+     * Get the {@link Entity} occupying this {@link Slot}
+     * 
+     * @param slot
+     * @return the entity or null if none
+     */
+    public Optional<Entity> getEntityOnSlot(Slot slot) {        
+        Vector3 worldPos = getWorldPos(slot.x, slot.y);
+        
+        return findEntity(worldPos.x, worldPos.y);        
+    }
+    
+    public Slot getSlot(Entity entity) {
+        return getSlot(entity.getX(), entity.getY());
     }
     
     /**

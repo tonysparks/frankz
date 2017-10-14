@@ -8,12 +8,17 @@ import java.io.IOException;
 import java.nio.file.ClosedWatchServiceException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -108,6 +113,8 @@ public class FileSystemAssetWatcher implements AssetWatcher {
     private Map<File, WatchedAsset<?>> watchedAssets;
     private Queue<Runnable> queuedTouches;
     
+    private Map<WatchKey, Path> keys;
+    
     /**
      * @param dir
      * @throws IOException
@@ -120,6 +127,7 @@ public class FileSystemAssetWatcher implements AssetWatcher {
         this.pathToWatch = dir.toPath();
         
         this.queuedTouches = new ConcurrentLinkedQueue<>();
+        this.keys = new HashMap<>(); 
         
         this.watchService = fileSystem.newWatchService();
         this.watchThread = new Thread(new Runnable() {
@@ -131,6 +139,11 @@ public class FileSystemAssetWatcher implements AssetWatcher {
                     try {
                         WatchKey key = watchService.take();
                         if(key.isValid()) {
+                            Path dir = keys.get(key);
+                            if(dir == null) {
+                                continue;
+                            }
+                            
                             List<WatchEvent<?>> events = key.pollEvents();
                             for(int i = 0; i < events.size(); i++) {
                                 WatchEvent<?> event = events.get(i);
@@ -146,7 +159,7 @@ public class FileSystemAssetWatcher implements AssetWatcher {
                                 Path filename = ev.context();
                                                                 
                                 /* if we have a registered asset, lets go ahead and notify it */
-                                WatchedAsset<?> watchedAsset = watchedAssets.get(new File(pathToWatch.toFile(), filename.toString()));
+                                WatchedAsset<?> watchedAsset = watchedAssets.get(new File(dir.toFile(), filename.toString()));
                                 if(watchedAsset != null) {
                                     Logger.log("Reloading asset: " + filename);
                                     //watchedAsset.assetChanged();  
@@ -168,7 +181,19 @@ public class FileSystemAssetWatcher implements AssetWatcher {
         }, "watcher-thread");
         this.watchThread.setDaemon(true);
         
-        this.pathToWatch.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+        Files.walkFileTree(this.pathToWatch, new SimpleFileVisitor<Path>() {
+           
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {           
+                register(dir);
+                return FileVisitResult.CONTINUE;
+            } 
+        });
+    }
+    
+    private void register(Path dir) throws IOException {
+        WatchKey key = dir.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
+        this.keys.put(key, dir);
     }
 
     @Override

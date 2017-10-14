@@ -3,12 +3,10 @@
  */
 package colony.game.screens.battle;
 
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
-
-import colony.game.Logger;
-import colony.game.screens.battle.Board.Slot;
 
 /**
  * Handles user input for the battle scene
@@ -62,17 +60,21 @@ public class BattleScreenInputProcessor implements InputProcessor {
     }
 
     @Override
-    public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-        OrthographicCamera camera = screen.getCamera();
-        
+    public boolean touchUp(int screenX, int screenY, int pointer, int button) {        
         mousePos.set(screenX, screenY, 0);
         
-        Vector3 pos = camera.unproject(mousePos); 
-        Logger.log(pos);
+        OrthographicCamera camera = screen.getCamera();
+        Vector3 pos = camera.unproject(mousePos);
         
-        Slot slot = screen.getBattleScene().getSlot(pos.x, pos.y);
-        if(slot!=null) {
-            Logger.log("Slot: " + slot.x + ", " + slot.y + " ~ " + slot.bounds.x + ", " + slot.bounds.y);
+        BattleScene scene = this.screen.getBattleScene();
+        if(scene.hasSelectedEntity() && button == Buttons.RIGHT) {            
+            scene.selectSlot(pos.x, pos.y);
+            scene.issueMoveToCommand();
+        }
+        else {
+            if(button == Buttons.LEFT) {
+                scene.selectEntity(pos.x, pos.y);
+            }
         }
         
         return false;

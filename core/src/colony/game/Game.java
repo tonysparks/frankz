@@ -23,7 +23,7 @@ import colony.gfx.RenderContext;
 import colony.gfx.TextureUtil;
 import colony.sfx.Sounds;
 
-public class ColonyGame extends ApplicationAdapter {
+public class Game extends ApplicationAdapter {
     private TimeStep timeStep;
     private long gameClock;
 
@@ -40,7 +40,7 @@ public class ColonyGame extends ApplicationAdapter {
     
     private AssetWatcher watcher;
     
-    public ColonyGame(Config config) {
+    public Game(Config config) {
         this.timeStep = new TimeStep();     
         this.isDevelopmentMode = config.developmentMode;
     }

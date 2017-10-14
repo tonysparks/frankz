@@ -3,13 +3,16 @@
  */
 package colony.game.entities;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.math.Vector3;
 
-import colony.game.ColonyGame;
+import colony.game.Game;
 import colony.game.TimeStep;
+import colony.game.Updatable;
+import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
-import colony.gfx.Renderable;
 
 /**
  * 
@@ -17,18 +20,19 @@ import colony.gfx.Renderable;
  * @author Tony
  *
  */
-public class Entity implements Renderable {
+public class Entity implements Updatable, PositionableRenderable {
     
-    public Entity loadEntity(ColonyGame game, String entityType) {
+    public static Entity loadEntity(Game game, String entityType) {
         Entity ent = new Entity();
         game.loadAsset(entityType, EntityData.class).onAssetChanged( data -> {
             ent.bounds.width = data.width;
             ent.bounds.height = data.height;
-            
-            if(!ent.pos.isZero()) {
+                        
+            if(ent.pos.isZero()) {
                 ent.pos.x = data.x;
                 ent.pos.y = data.y;
             }
+
             
             if(data.model != null) {
                 ent.model = EntityModel.loadEntityModel(game, ent, data.model);
@@ -40,6 +44,7 @@ public class Entity implements Renderable {
     }
     
     public Vector2 pos;
+    public Vector2 centerPos;
     public Rectangle bounds;
     
     public EntityModel model;
@@ -49,7 +54,71 @@ public class Entity implements Renderable {
      */
     public Entity() {
         this.pos = new Vector2();
+        this.centerPos = new Vector2();
         this.bounds = new Rectangle();
+    }
+    
+    /**
+     * @return the pos
+     */
+    public Vector2 getPos() {
+        return pos;
+    }
+
+    
+    /**
+     * @return the centerPos
+     */
+    public Vector2 getCenterPos() {
+        centerPos.x = pos.x + bounds.width/2;
+        centerPos.y = pos.y + bounds.height/2;
+        return centerPos;
+    }
+    
+    /**
+     * @return the bounds
+     */
+    public Rectangle getBounds() {
+        return bounds;
+    }
+    
+    public Entity setPos(Vector3 pos) {
+        return setPos(pos.x, pos.y);
+    }
+    
+    public Entity setPos(Vector2 pos) {
+        return setPos(pos.x, pos.y);
+    }
+    
+    public Entity setPos(float x, float y) {
+        this.pos.set(x, y);
+        
+
+        float offsetX = this.bounds.width / 2;
+        float offsetY = this.bounds.height;
+      
+        this.pos.x -= offsetX - 0.2f;
+        this.pos.y -= offsetY - 0.2f;
+        
+        this.bounds.setPosition(this.pos.x, this.pos.y);
+        return this;
+    }
+    
+    public Entity moveBy(float deltaX, float deltaY) {
+        this.pos.x += deltaX;
+        this.pos.y += deltaY;
+        this.bounds.setPosition(this.pos.x, this.pos.y);
+        return this;
+    }
+    
+    @Override
+    public float getX() {    
+        return pos.x;
+    }
+    
+    @Override
+    public float getY() {    
+        return pos.y;
     }
 
     @Override
@@ -58,7 +127,14 @@ public class Entity implements Renderable {
     }
     
     @Override
-    public void render(RenderContext context) {
-        this.model.render(context);
+    public void render(RenderContext context) {        
+        this.model.render(context);    
+        
+        
+        context.batch.end();
+        context.drawRect(pos.x, pos.y, bounds.width, bounds.height, Color.GOLD);
+        context.batch.begin();
+                
     }
 }
+

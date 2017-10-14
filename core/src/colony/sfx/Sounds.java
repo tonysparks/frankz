@@ -10,7 +10,7 @@ import java.util.Random;
 import com.badlogic.gdx.audio.Sound;
 
 import colony.assets.WatchedAsset;
-import colony.game.ColonyGame;
+import colony.game.Game;
 
 /**
  * Manages sounds
@@ -29,7 +29,7 @@ public class Sounds {
     private static float gameVolume;
     private static float musicVolume;
     
-    public static void init(ColonyGame game) {
+    public static void init(Game game) {
         destroy();
         
         game.getConfig().onAssetChanged(config -> {

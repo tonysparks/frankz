@@ -44,11 +44,14 @@ public class RenderContext {
     public float textScaleFactor = 1.0f;
  
     public SpriteBatch batch;
+    public ShapeRenderer shapes;
     
     /**
      * 
      */
     public RenderContext() {
+        this.shapes = new ShapeRenderer();
+        
         this.generators = new HashMap<String, FreeTypeFontGenerator>();
         this.fonts = new HashMap<String, BitmapFont>();
         this.bounds = new GlyphLayout();
@@ -59,6 +62,9 @@ public class RenderContext {
     public void setProjectionTransform(Matrix4 projection, Matrix4 transform) {
         this.batch.setProjectionMatrix(projection);
         this.batch.setTransformMatrix(transform);
+        
+        this.shapes.setProjectionMatrix(projection);
+        this.shapes.setTransformMatrix(transform);
     }
     
     
@@ -161,7 +167,7 @@ public class RenderContext {
     }
     
     
-    public void drawLine(ShapeRenderer shapes, int x1, int y1, int x2, int y2, Color color) {
+    public void drawLine(int x1, int y1, int x2, int y2, Color color) {
         
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
@@ -173,7 +179,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void drawLine(ShapeRenderer shapes, float x1, float y1, float x2, float y2, Color color) {
+    public void drawLine(float x1, float y1, float x2, float y2, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -184,7 +190,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void drawRect(ShapeRenderer shapes, int x, int y, int width, int height, Color color) {        
+    public void drawRect(int x, int y, int width, int height, Color color) {        
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -195,7 +201,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
     
-    public void drawRect(ShapeRenderer shapes, float x, float y, float width, float height, Color color) {
+    public void drawRect(float x, float y, float width, float height, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -206,7 +212,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void fillRect(ShapeRenderer shapes, int x, int y, int width, int height, Color color) {
+    public void fillRect(int x, int y, int width, int height, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);                
         
@@ -218,7 +224,7 @@ public class RenderContext {
 
     }
     
-    public void fillRect(ShapeRenderer shapes, float x, float y, float width, float height, Color color) {
+    public void fillRect(float x, float y, float width, float height, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);                
         
@@ -229,7 +235,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void drawCircle(ShapeRenderer shapes, float radius, int x, int y, Color color) {
+    public void drawCircle(float radius, int x, int y, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -240,7 +246,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
     
-    public void drawCircle(ShapeRenderer shapes, float radius, float x, float y, Color color) {
+    public void drawCircle(float radius, float x, float y, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -251,7 +257,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
 
-    public void fillCircle(ShapeRenderer shapes, float radius, int x, int y, Color color) {
+    public void fillCircle(float radius, int x, int y, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);
@@ -262,7 +268,7 @@ public class RenderContext {
         Gdx.gl.glDisable(GL20.GL_BLEND);
     }
     
-    public void fillCircle(ShapeRenderer shapes, float radius, float x, float y, Color color) {
+    public void fillCircle(float radius, float x, float y, Color color) {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapes.setColor(color);

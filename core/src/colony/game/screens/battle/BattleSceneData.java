@@ -3,6 +3,8 @@
  */
 package colony.game.screens.battle;
 
+import java.util.List;
+
 import colony.gfx.ImageData;
 
 /**
@@ -33,9 +35,24 @@ public class BattleSceneData {
         public String color;
     }
     
+    public static class FactionData {
+        public String name;
+        public List<EntityRefData> entities;
+    }
+    
+    public static class EntityRefData {
+        public String entityData;
+        public int indexX, indexY;
+    }
+    
     public String backgroundImage;
     public ImageData slotImage;
     public TileHighlight tileHighlight;
-    public SceneObject[] objects;   
+    public SceneObject[] objects;
+    
+    
+    public FactionData attacker;
+    public FactionData defender;
+    
 
 }

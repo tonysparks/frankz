@@ -24,20 +24,57 @@
             filename:  "./assets/gfx/battle/slot.png"
         }
     },
+     
+    attacker: {
+        name: "Deaconate",
+        entities: [ 
+            {
+                entityData: "./assets/entities/deaconate/blacktop/blacktop.json",
+                indexX: 0,
+                indexY: 0,
+            },
+            {
+                entityData: "./assets/entities/deaconate/chunk/chunk.json",
+                indexX: 0,
+                indexY: 1,
+            },
+            {
+                entityData: "./assets/entities/deaconate/frank/frank.json",
+                indexX: 0,
+                indexY: 2,
+            },
+            {
+                entityData: "./assets/entities/deaconate/squirt/squirt.json",
+                indexX: 0,
+                indexY: 3,
+            },
+        ]
+    },
     
-    objects: [
-        /*{
-            width: 30,
-            height: 16.453125,
-            x: 0.0,
-            y: 0.0,  
-            
-            image: {
-                filename: "./assets/gfx/battle/grid.png"
-            }
-        },*/ 
+    defender: {
+        name: "Pantheon",
+        entities: [
+            {
+                entityData: "./assets/entities/pantheon/chunk/chunk.json",
+                indexX: 9,
+                indexY: 9,
+            },
+            {
+                entityData: "./assets/entities/pantheon/frank/frank.json",
+                indexX: 9,
+                indexY: 8,
+            },
+            {
+                entityData: "./assets/entities/pantheon/squirt/squirt.json",
+                indexX: 9,
+                indexY: 7,
+            },
+        ]
+    }
+    
+    objects: [        
         {
-            width: 0.9,
+            width: 1.2,
             height: 1.8,
             x: 9.15,
             y: 6.0,
@@ -55,26 +92,6 @@
             image: {
                 filename: "./assets/gfx/battle/objects/rock1.png"
             }
-        },
-        {
-            width: 2.2,
-            height: 2.4,
-            x: 4.0,
-            y: 6.2,
-                        
-            image: {
-                filename: "./assets/gfx/franks/deaconate/chunk.png"
-            }
-        },
-        {
-            width: 2.2,
-            height: 2.4,
-            x: 4.0,
-            y: 5.2,
-                                    
-            image: {
-                filename: "./assets/gfx/franks/deaconate/frank.png"
-            }
-        }      
+        },    
     ]
 }

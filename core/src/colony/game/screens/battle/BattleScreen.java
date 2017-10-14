@@ -8,12 +8,11 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
 
-import colony.game.ColonyGame;
+import colony.game.Game;
 import colony.game.TimeStep;
 import colony.game.screens.Screen;
 import colony.gfx.RenderContext;
@@ -33,7 +32,6 @@ public class BattleScreen implements Screen {
     
     private OrthographicCamera camera, hudCamera;
     private Matrix4 transform;
-    private ShapeRenderer shapes;
     
     private BattleScene battleScene;
     
@@ -45,8 +43,7 @@ public class BattleScreen implements Screen {
     /**
      * 
      */
-    public BattleScreen(ColonyGame game, String battleSceneFile) {
-        this.shapes = new ShapeRenderer();
+    public BattleScreen(Game game, String battleSceneFile) {
         this.transform = new Matrix4();
 
         float w = Gdx.graphics.getWidth();
@@ -98,14 +95,10 @@ public class BattleScreen implements Screen {
         this.camera.update();
                 
         context.setProjectionTransform(this.camera.combined, this.transform);
-
-        shapes.setProjectionMatrix(this.camera.combined);
-        shapes.setTransformMatrix(this.transform);
         
-        
-        float effectiveViewportWidth = camera.viewportWidth;// * camera.zoom;
-        float effectiveViewportHeight = camera.viewportHeight;// * camera.zoom;
-        context.fillRect(shapes, 0, 0, effectiveViewportWidth, effectiveViewportHeight, Color.valueOf("6B8E23"));
+        //float effectiveViewportWidth = camera.viewportWidth;// * camera.zoom;
+        //float effectiveViewportHeight = camera.viewportHeight;// * camera.zoom;
+        //context.fillRect(0, 0, effectiveViewportWidth, effectiveViewportHeight, Color.valueOf("6B8E23"));
         
         context.batch.begin();       
         
