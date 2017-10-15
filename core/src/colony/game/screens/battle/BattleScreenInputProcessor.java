@@ -3,10 +3,15 @@
  */
 package colony.game.screens.battle;
 
+import java.util.Optional;
+
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
+
+import colony.game.entities.Entity;
+import colony.game.screens.battle.Board.Slot;
 
 /**
  * Handles user input for the battle scene
@@ -67,9 +72,21 @@ public class BattleScreenInputProcessor implements InputProcessor {
         Vector3 pos = camera.unproject(mousePos);
         
         BattleScene scene = this.screen.getBattleScene();
-        if(scene.hasSelectedEntity() && button == Buttons.RIGHT) {            
-            scene.selectSlot(pos.x, pos.y);
-            scene.issueMoveToCommand();
+        if(button == Buttons.RIGHT) {
+            if(scene.hasSelectedEntity()) {
+                Optional<Entity> ent = scene.getEntity(pos.x, pos.y);
+                if(ent.isPresent()) {
+                    scene.issueAttackCommand(ent.get());
+                }
+                else {
+
+                    Slot slot = scene.getSlot(pos.x, pos.y);
+                    if(slot!=null) {
+                        scene.issueMoveToCommand(slot);
+                    }
+                }
+            }
+            
         }
         else {
             if(button == Buttons.LEFT) {

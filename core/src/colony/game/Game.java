@@ -22,6 +22,7 @@ import colony.gfx.ImageData;
 import colony.gfx.RenderContext;
 import colony.gfx.TextureUtil;
 import colony.sfx.Sounds;
+import colony.util.EventDispatcher;
 
 public class Game extends ApplicationAdapter {
     private TimeStep timeStep;
@@ -39,10 +40,20 @@ public class Game extends ApplicationAdapter {
     private boolean isDevelopmentMode;
     
     private AssetWatcher watcher;
+    private EventDispatcher dispatcher;
     
     public Game(Config config) {
         this.timeStep = new TimeStep();     
         this.isDevelopmentMode = config.developmentMode;
+        
+        this.dispatcher = new EventDispatcher();
+    }
+    
+    /**
+     * @return the dispatcher
+     */
+    public EventDispatcher getDispatcher() {
+        return dispatcher;
     }
     
     /**

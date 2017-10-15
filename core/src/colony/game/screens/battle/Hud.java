@@ -3,11 +3,17 @@
  */
 package colony.game.screens.battle;
 
+import java.util.List;
+
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector3;
 
 import colony.game.Logger;
 import colony.game.TimeStep;
+import colony.game.entities.ActionMeter;
+import colony.game.entities.Entity;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 
@@ -42,13 +48,20 @@ public class Hud implements Renderable {
     private String font;
     private int size;
     
-    public OrthographicCamera camera;
+    public OrthographicCamera camera, hudCamera;
+    
+    private BattleScene scene;
+    private Vector3 worldPos;
     
     /**
      * 
      */
-    public Hud(OrthographicCamera camera) {
+    public Hud(BattleScene scene, OrthographicCamera camera, OrthographicCamera hudCamera) {
+        this.scene = scene;
         this.camera = camera;
+        this.hudCamera = hudCamera;
+        
+        this.worldPos = new Vector3();
         
         this.textQueue = new RenderText[1024];
         this.textQueueCount = 0;
@@ -75,7 +88,7 @@ public class Hud implements Renderable {
     
     @Override
     public void update(TimeStep timeStep) {
-
+        
     }
 
     @Override
@@ -86,7 +99,41 @@ public class Hud implements Renderable {
             context.drawString(text.text, text.x, text.y, text.color);            
         }
         
-        this.textQueueCount = 0;        
+        this.textQueueCount = 0;      
+        
+        context.setFont("Consola", 28);
+        renderEntityInfo(this.scene.getAttacker().getEntities(), context);
+        renderEntityInfo(this.scene.getDefender().getEntities(), context);
     }
 
+    private void renderEntityInfo(List<Entity> entities, RenderContext context) {
+        for(int i = 0; i < entities.size(); i++) {
+            Entity ent = entities.get(i);
+            
+            if(ent.isAlive()) {
+                String hp = "";
+                for(int h = 0; h < ent.getHealth(); h++) {
+                    hp += "*";
+                }
+                
+                String max = "";
+                for(int h = 0; h < ent.getMaxHealth(); h++) {
+                    max += "*";
+                }
+                
+                worldPos.set(ent.pos, 0);
+                worldPos.x -= 0.2f;
+                worldPos.y += 0.6f;
+                
+                camera.project(worldPos);
+                worldPos.y = Gdx.graphics.getHeight() - worldPos.y;
+                
+                context.drawString(max, worldPos.x, worldPos.y, Color.WHITE);
+                context.drawString(hp, worldPos.x, worldPos.y, Color.NAVY);
+                
+                ActionMeter meter = ent.getActionMeter();
+                context.drawString(meter.getActionPoints() + "/" + meter.getStartingActionPoints(), worldPos.x, worldPos.y + 30f, Color.NAVY);
+            }
+        }
+    }
 }

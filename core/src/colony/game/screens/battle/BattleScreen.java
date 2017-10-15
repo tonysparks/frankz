@@ -6,13 +6,24 @@ package colony.game.screens.battle;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
-import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Event;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 import colony.game.Game;
+import colony.game.Logger;
 import colony.game.TimeStep;
 import colony.game.screens.Screen;
 import colony.gfx.RenderContext;
@@ -39,6 +50,7 @@ public class BattleScreen implements Screen {
     
     private BattleScreenInputProcessor inputProcessor;
     
+    private Stage stage;
     
     /**
      * 
@@ -59,13 +71,45 @@ public class BattleScreen implements Screen {
         this.hudCamera.position.set(hudCamera.viewportWidth / 2f, hudCamera.viewportHeight / 2f, 0);
         this.hudCamera.update();
         
-        this.hud = new Hud(this.hudCamera);
         
-        this.battleScene = BattleScene.loadScene(game, this.hud, this.camera, battleSceneFile);
+        this.battleScene = BattleScene.loadScene(game, this.camera, battleSceneFile);
+        this.hud = new Hud(battleScene, this.camera, this.hudCamera);
         
         this.inputProcessor = new BattleScreenInputProcessor(this);
         
-        Gdx.input.setInputProcessor(this.inputProcessor);
+        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("./skin/neon-ui.atlas"));
+        Skin skin = new Skin(Gdx.files.internal("./skin/neon-ui.json"), atlas);
+        
+        this.stage = new Stage(new ScreenViewport());        
+        Button endTurnBtn = new TextButton("End Turn", skin);
+                        
+        endTurnBtn.setPosition(10, 10);
+        endTurnBtn.setSize(150, 70);
+        endTurnBtn.addListener(new ChangeListener() {
+            
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {                         
+                event.handle();
+                boolean turnEnded = battleScene.endTurn(); 
+                Logger.log("Changed turn: " + turnEnded);
+            }
+        });
+        
+        this.stage.addActor(endTurnBtn);
+        
+        Label currentTurnLbl = new Label("Turn: " + battleScene.getCurrentTurn().getFactionsTurn().getName(), skin);
+        currentTurnLbl.setPosition(220, 10);
+        currentTurnLbl.setSize(150, 70);
+        currentTurnLbl.setFontScale(1.8f);        
+        game.getDispatcher().addEventListener(TurnEndedEvent.class, 
+                t->currentTurnLbl.setText("Turn: " + t.current.getFactionsTurn().getName()) );
+        
+        this.stage.addActor(currentTurnLbl);
+        
+        InputMultiplexer inputs = new InputMultiplexer();
+        inputs.addProcessor(this.inputProcessor);
+        inputs.addProcessor(this.stage);
+        Gdx.input.setInputProcessor(inputs);
     }
     
     /**
@@ -87,6 +131,7 @@ public class BattleScreen implements Screen {
     public void update(TimeStep timeStep) {
         handleInput();
         
+        this.stage.act();
         this.battleScene.update(timeStep);
     }
 
@@ -111,6 +156,8 @@ public class BattleScreen implements Screen {
         context.batch.begin();
         this.hud.render(context);
         context.batch.end();
+        
+        this.stage.draw();
     }
     
     private void handleInput() {
@@ -170,5 +217,7 @@ public class BattleScreen implements Screen {
         this.camera.viewportHeight = GAME_HEIGHT * height/width;
         this.camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
         this.camera.update();
+        
+        this.stage.getViewport().update(width, height, true);
     }
 }

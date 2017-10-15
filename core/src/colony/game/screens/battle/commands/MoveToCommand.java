@@ -9,6 +9,8 @@ import com.badlogic.gdx.math.Vector3;
 
 import colony.game.TimeStep;
 import colony.game.entities.Entity;
+import colony.game.entities.EntityData.MovementData;
+import colony.game.entities.EntityState;
 import colony.game.screens.battle.BattleScene;
 import colony.game.screens.battle.Board.Slot;
 import colony.game.screens.battle.PathPlanner;
@@ -32,10 +34,14 @@ public class MoveToCommand extends Command {
 
     @Override
     public CommandResult checkPreconditions(BattleScene scene) {
-        if(parameters.selectedEntity == null) {
+        Entity entity = parameters.selectedEntity;
+        
+        if(entity == null) {
             return failed("No selected entity");
         }
         
+        MovementData data = entity.getMovementData();
+                
         if(parameters.targetSlot == null) {
             return failed("No target slot");
         }
@@ -44,15 +50,22 @@ public class MoveToCommand extends Command {
             return failed("Target slot is already occupied");
         }
         
-        Slot start = scene.getSlot(parameters.selectedEntity);
+        Slot start = scene.getSlot(entity);
         Slot end = parameters.targetSlot;
         
-        this.pathPlanner = scene.newPathPlanner(parameters.selectedEntity);
-        this.pathPlanner.findPath(start, end);
+        this.pathPlanner = scene.newPathPlanner(entity);
         
+        int cost = this.pathPlanner.pathCost(start, end) * data.actionPoints;
+        if(!entity.hasPoints(cost)) {
+            return failed("Not enough action points");
+        }
+        
+        this.pathPlanner.findPath(start, end);
         if(!this.pathPlanner.hasPath()) {
             return failed("No valid path to target slot");
         }
+        
+        entity.usePoints(cost);
         
         return inProgress();
     }
@@ -105,13 +118,15 @@ public class MoveToCommand extends Command {
             }
 
             @Override
-            public void start() {                
+            public void start() {            
+                parameters.selectedEntity.setState(EntityState.Walking);
             }
             
             @Override
             public void end() {
                 // snap the entity to the appropriate slot center
                 parameters.selectedEntity.setPos(scene.getWorldPos(parameters.targetSlot));
+                parameters.selectedEntity.setState(EntityState.Idle);
             }
 
             @Override

@@ -6,6 +6,7 @@ package colony.game.screens.battle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -20,6 +21,7 @@ import colony.game.entities.Entity;
 import colony.game.screens.battle.BattleSceneData.EntityRefData;
 import colony.game.screens.battle.BattleSceneData.SceneObject;
 import colony.game.screens.battle.Board.Slot;
+import colony.game.screens.battle.commands.AttackCommand;
 import colony.game.screens.battle.commands.Command;
 import colony.game.screens.battle.commands.CommandParameters;
 import colony.game.screens.battle.commands.CommandQueue;
@@ -29,6 +31,7 @@ import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 import colony.gfx.SpriteRenderable;
 import colony.sfx.Sounds;
+import colony.util.EventDispatcher;
 import colony.util.Timer;
 
 /**
@@ -46,10 +49,10 @@ public class BattleScene implements Renderable {
      * @param battleSceneFile
      * @return
      */
-    public static BattleScene loadScene(Game game, Hud hud, OrthographicCamera camera, String battleSceneFile) {
+    public static BattleScene loadScene(Game game, OrthographicCamera camera, String battleSceneFile) {
         final BattleScene scene = new BattleScene();
         scene.camera = camera;
-        scene.hud = hud;
+        scene.dispatcher = game.getDispatcher();
         
         game.loadAsset(battleSceneFile, BattleSceneData.class).onAssetChanged(data -> {
             
@@ -99,37 +102,29 @@ public class BattleScene implements Renderable {
             
             
             if(data.attacker != null) {
-                scene.attacker = new Faction(data.attacker.name);
+                scene.attacker.setName(data.attacker.name);
+                scene.attacker.getEntities().clear();
+                
                 for(EntityRefData entData : data.attacker.entities) {
                     Entity ent = Entity.loadEntity(game, entData.entityData);
                     scene.attacker.addEntity(ent);
                     
                     Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
-                    //worldPos.x -= tileHalfWidth;
-                    //worldPos.y -= tileHalfHeight;
-                    
                     ent.setPos(worldPos);
                 }
             }
-            else {
-                scene.attacker = new Faction("<undefined>");
-            }
             
             if(data.defender != null) {
-                scene.defender = new Faction(data.defender.name);
+                scene.defender.setName(data.defender.name);
+                scene.defender.getEntities().clear();
+                
                 for(EntityRefData entData : data.defender.entities) {
                     Entity ent = Entity.loadEntity(game, entData.entityData);
                     scene.defender.addEntity(ent);
                     
                     Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
-                    //worldPos.x -= tileHalfWidth;
-                    //worldPos.y -= tileHalfHeight;
-                    
                     ent.setPos(worldPos);
                 }
-            }
-            else {
-                scene.defender = new Faction("<undefined>");
             }
             
         }).touch();
@@ -148,7 +143,6 @@ public class BattleScene implements Renderable {
     
     private OrthographicCamera camera;
     
-    private Hud hud;
     private Vector3 worldPos;
     private Rectangle bounds;
     private int index;
@@ -177,6 +171,11 @@ public class BattleScene implements Renderable {
     private BoardGraph graph;
     
     private CommandQueue commandQueue;
+        
+    private Turn currentTurn;
+    private Dice dice;
+    
+    private EventDispatcher dispatcher;
     
     /**
      * 
@@ -200,13 +199,23 @@ public class BattleScene implements Renderable {
         
         this.graph = new BoardGraph(board);   
         
+        this.attacker = new Faction("<undefined>");
+        this.defender = new Faction("<undefined>");
+        
         this.commandQueue = new CommandQueue(this);
+        this.currentTurn = new Turn(0, this.attacker);
+        
+        this.dice = new Dice();
     }
     
     
     @Override
     public void update(TimeStep timeStep) {
         this.commandQueue.update(timeStep);
+        this.dispatcher.processQueue();
+        
+        this.attacker.update(timeStep);
+        this.defender.update(timeStep);
         
         if(this.highlightedSlot != null) {
             Vector3 worldPos = getWorldPos(this.highlightedSlot);
@@ -287,7 +296,85 @@ public class BattleScene implements Renderable {
         this.commandQueue.render(context);
 
     }
-
+    
+    /**
+     * End the current turn
+     * 
+     * @return if the turn successfully ended
+     */
+    public boolean endTurn() {
+        Faction current = this.currentTurn.getFactionsTurn();
+        
+        Turn newTurn = this.currentTurn.end(this);
+        if(newTurn.getNumber() == this.currentTurn.getNumber()) {
+            return false;
+        }
+        
+        current.getEntities().forEach(ent -> ent.endTurn());
+    
+        this.dispatcher.queueEvent(new TurnEndedEvent(this, this.currentTurn, newTurn));
+        
+        this.currentTurn = newTurn;
+        return true;
+    }
+    
+    /**
+     * @return the currentTurn
+     */
+    public Turn getCurrentTurn() {
+        return currentTurn;
+    }
+    
+    /**
+     * @return the dice
+     */
+    public Dice getDice() {
+        return dice;
+    }
+    
+    /**
+     * If there are pending commands
+     * 
+     * @return true if there are pending commands
+     */
+    public boolean hasPendingCommands() {
+        return !this.commandQueue.isEmpty();
+    }
+    
+    /**
+     * @return the commandQueue
+     */
+    public CommandQueue getCommandQueue() {
+        return commandQueue;
+    }
+    
+    /**
+     * @return the attacker
+     */
+    public Faction getAttacker() {
+        return attacker;
+    }
+    
+    /**
+     * @return the defender
+     */
+    public Faction getDefender() {
+        return defender;
+    }
+    
+    /**
+     * Gets the enemy of the supplied {@link Faction}
+     * 
+     * @param faction
+     * @return the enemy of the supplied faction
+     */
+    public Faction getEnemy(Faction faction) {
+        if(this.defender == faction) {
+            return this.attacker;
+        }
+        return this.defender;
+    }
+    
     /**
      * @return the graph
      */
@@ -359,7 +446,29 @@ public class BattleScene implements Renderable {
         return worldPos;
     }
     
-    
+    /**
+     * Gets the {@link Entity} at the supplied position
+     * 
+     * @param worldX
+     * @param worldY
+     * @return the entity if one exists at the position
+     */
+    public Optional<Entity> getEntity(float worldX, float worldY) {
+        // first try to see if the user selected by clicking
+        // on the Entity
+        Optional<Entity> ent = findEntity(worldX, worldY);
+        
+        // if the didn't touch any entity, see if they selected
+        // by clicking on the Slot
+        if(!ent.isPresent()) {                        
+            Slot slot = getSlot(worldX, worldY);
+            if(slot!=null) {                                
+                ent = getEntityOnSlot(slot);
+            }
+        }
+        
+        return ent;
+    }
     /**
      * Select a {@link Slot}
      * 
@@ -382,18 +491,7 @@ public class BattleScene implements Renderable {
      * @param worldY
      */
     public void selectEntity(float worldX, float worldY) {
-        // first try to see if the user selected by clicking
-        // on the Entity
-        Optional<Entity> ent = findEntity(worldX, worldY);
-        
-        // if the didn't touch any entity, see if they selected
-        // by clicking on the Slot
-        if(!ent.isPresent()) {                        
-            Slot slot = getSlot(worldX, worldY);
-            if(slot!=null) {                                
-                ent = getEntityOnSlot(slot);
-            }
-        }
+        Optional<Entity> ent = getEntity(worldX, worldY);
         
         if(ent.isPresent()) {
             this.selectedEntity = ent.get();
@@ -418,17 +516,39 @@ public class BattleScene implements Renderable {
         return this.selectedEntity != null;
     }
     
+    private boolean isSelectedEntityCommandable() {
+        if(hasSelectedEntity()) {
+            return this.currentTurn.getFactionsTurn().equals(this.selectedEntity.getFaction());
+        }
+        return false;
+    }
     
     /**
      * Issues a {@link MoveToCommand} for the selected entity
      * 
+     * @param targetSlot
      * @see #selectEntity(float, float)
      */
-    public void issueMoveToCommand() {        
-        this.commandQueue.addCommand(new MoveToCommand(new CommandParameters(this.selectedEntity, this.selectedSlot)));
+    public void issueMoveToCommand(Slot targetSlot) {
+        if(isSelectedEntityCommandable()) {
+            this.commandQueue.addCommand(new MoveToCommand(new CommandParameters(this.selectedEntity, targetSlot)));
+        }
         
-        this.selectedEntity = null;
-        this.selectedSlot = null;
+        this.selectedEntity = null;        
+    }
+    
+    /**
+     * Issues an {@link AttackCommand} for the selected entity
+     * 
+     * @param enemy
+     * @see #selectEntity(float, float)
+     */
+    public void issueAttackCommand(Entity enemy) {
+        if(isSelectedEntityCommandable()) {
+            this.commandQueue.addCommand(new AttackCommand(new CommandParameters(this.selectedEntity, enemy)));
+        }
+        
+        this.selectedEntity = null;        
     }
     
     private Optional<Entity> findEntity(float worldX, float worldY) {
