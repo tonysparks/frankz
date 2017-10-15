@@ -44,7 +44,7 @@ public class CommandQueue implements Renderable {
     public void update(TimeStep timeStep) {
         if(this.currentAction == null || !this.currentAction.status().inProgress()) {
             if(this.currentAction != null) {
-              //  this.currentAction.end();
+                this.currentAction.end();
             }
             
             this.currentAction = null;

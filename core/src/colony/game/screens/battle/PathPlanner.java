@@ -201,7 +201,7 @@ public class PathPlanner {
             
             // if we've arrived at the destination slot 
             // let's set the way point to the next slot
-            if( Math.abs(cPos.len() - Vector2.len(centerX, centerY)) < 0.019) {
+            if( Math.abs(cPos.len() - Vector2.len(centerX, centerY)) < 0.028) {
                 currentNode++;
             }
             
