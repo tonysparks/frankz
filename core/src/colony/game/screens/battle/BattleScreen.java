@@ -77,8 +77,8 @@ public class BattleScreen implements Screen {
         
         this.inputProcessor = new BattleScreenInputProcessor(this);
         
-        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("./skin/neon-ui.atlas"));
-        Skin skin = new Skin(Gdx.files.internal("./skin/neon-ui.json"), atlas);
+        TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("./assets/skin/neon-ui.atlas"));
+        Skin skin = new Skin(Gdx.files.internal("./assets/skin/neon-ui.json"), atlas);
         
         this.stage = new Stage(new ScreenViewport());        
         Button endTurnBtn = new TextButton("End Turn", skin);
