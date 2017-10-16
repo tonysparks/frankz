@@ -25,6 +25,8 @@ import colony.sfx.Sounds;
 import colony.util.EventDispatcher;
 
 public class Game extends ApplicationAdapter {
+    public static final String VERSION = "Alpha-0.0.1";
+    
     private TimeStep timeStep;
     private long gameClock;
 

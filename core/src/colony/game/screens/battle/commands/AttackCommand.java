@@ -83,7 +83,7 @@ public class AttackCommand extends Command {
                 Dice dice = scene.getDice();
                                 
                 int defenseScore = dice.d10() + parameters.targetEntity.calculateDefense(scene);
-                int offenseScore = dice.d10() + parameters.selectedEntity.calculateDefense(scene);
+                int offenseScore = dice.d10() + parameters.selectedEntity.calculateOffense(scene);
                 
                 if(offenseScore > defenseScore) {
                     parameters.targetEntity.damage(parameters.selectedEntity.getAttackData().damage);
@@ -91,9 +91,7 @@ public class AttackCommand extends Command {
             }
             
             @Override
-            public void end() {
-                // snap the entity to the appropriate slot center
-                parameters.selectedEntity.setPos(scene.getWorldPos(parameters.targetSlot));
+            public void end() {                
                 parameters.selectedEntity.setState(EntityState.Idle);
             }
 
