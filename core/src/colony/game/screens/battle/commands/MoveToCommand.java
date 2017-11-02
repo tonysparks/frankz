@@ -98,7 +98,7 @@ public class MoveToCommand extends Command {
                     return;
                 }
                 
-                final float movementSpeed = 1.8f;
+                final float movementSpeed = entity.getStats().movementSpeed;
                 
                 Vector2 vel = waypoint.cpy().nor();
                 

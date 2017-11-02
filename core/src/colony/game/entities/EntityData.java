@@ -27,6 +27,8 @@ public class EntityData {
         
         public int defenseFactor = 10;
         public int defenseNeighborFactor = 15;
+        
+        public float movementSpeed = 16.5f;
     }
     
     public float x, y;
