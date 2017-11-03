@@ -217,6 +217,12 @@ public class BattleScreen implements Screen {
         this.camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
         this.camera.update();
         
+        
+        this.hudCamera.viewportWidth = width;
+        this.hudCamera.viewportHeight = height;
+        this.hudCamera.position.set(hudCamera.viewportWidth / 2f, hudCamera.viewportHeight / 2f, 0);
+        this.hudCamera.update();
+        
         this.stage.getViewport().update(width, height, true);
     }
 }

@@ -18,6 +18,79 @@ import colony.util.Timer;
  */
 public class AttackCommand extends Command {
 
+    public class AttackAction implements Action {
+        protected Timer timer;
+        protected BattleScene scene;
+        
+        public AttackAction(BattleScene scene) {
+            this.scene = scene;            
+            this.timer = new Timer(false, 1_500);
+        }
+        
+        protected CommandParameters parameters() {
+            return parameters;
+        }
+        
+        @Override
+        public void render(RenderContext context) {
+            // TODO Attack effects!
+        }
+
+        @Override
+        public void update(TimeStep timeStep) {
+            this.timer.update(timeStep);
+        }
+
+        @Override
+        public void start() {            
+            parameters.selectedEntity.setState(EntityState.Attacking);
+            
+            Dice dice = scene.getDice();
+                            
+            int defenseScore = dice.d10() + parameters.targetEntity.calculateDefense(scene);
+            int offenseScore = dice.d10() + parameters.selectedEntity.calculateOffense(scene);
+            
+            if(offenseScore > defenseScore) {
+                parameters.targetEntity.damage(parameters.selectedEntity.getAttackData().damage);
+                
+                onHit();
+            }
+            else {
+                onMiss();
+            }
+        }
+        
+        /**
+         * The attack failed
+         */
+        protected void onMiss() {            
+        }
+        
+        /**
+         * The attack was successful
+         */
+        protected void onHit() {            
+        }
+        
+        @Override
+        public void end() {                
+            parameters.selectedEntity.setState(EntityState.Idle);
+        }
+
+        @Override
+        public void cancel() {             
+        }
+
+        @Override
+        public CommandResult status() {
+            if(this.timer.isExpired()) {
+                return CommandResult.Success;
+            }
+                            
+            return CommandResult.InProgress;
+        }
+    }
+    
     /**
      * @param params
      */
@@ -62,53 +135,7 @@ public class AttackCommand extends Command {
 
     @Override
     public Action createAction(BattleScene scene) {
-        return new Action() {           
-            
-            Timer timer = new Timer(false, 1_500);
-            
-            @Override
-            public void render(RenderContext context) {
-                // TODO Attack effects!
-            }
-
-            @Override
-            public void update(TimeStep timeStep) {
-                this.timer.update(timeStep);
-            }
-
-            @Override
-            public void start() {            
-                parameters.selectedEntity.setState(EntityState.Attacking);
-                
-                Dice dice = scene.getDice();
-                                
-                int defenseScore = dice.d10() + parameters.targetEntity.calculateDefense(scene);
-                int offenseScore = dice.d10() + parameters.selectedEntity.calculateOffense(scene);
-                
-                if(offenseScore > defenseScore) {
-                    parameters.targetEntity.damage(parameters.selectedEntity.getAttackData().damage);
-                }
-            }
-            
-            @Override
-            public void end() {                
-                parameters.selectedEntity.setState(EntityState.Idle);
-            }
-
-            @Override
-            public void cancel() {             
-            }
-
-            @Override
-            public CommandResult status() {
-                if(this.timer.isExpired()) {
-                    return CommandResult.Success;
-                }
-                                
-                return CommandResult.InProgress;
-            }
-            
-        };
+        return new AttackAction(scene);           
     }
 
 }

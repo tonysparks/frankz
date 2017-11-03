@@ -191,6 +191,20 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     /**
+     * Calculates the movement range for this Entity given
+     * their current amount of action points
+     * 
+     * @return the number of slots they can move
+     */
+    public int getCurrentMovementRange() {
+        if(this.movementData.actionPoints > 0) {
+            return this.actionMeter.getActionPoints() / this.movementData.actionPoints;
+        }
+        
+        return 0;
+    }
+    
+    /**
      * @return the actionMeter
      */
     public ActionMeter getActionMeter() {

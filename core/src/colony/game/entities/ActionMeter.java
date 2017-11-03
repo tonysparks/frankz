@@ -37,6 +37,10 @@ public class ActionMeter {
         return actionPoints;
     }
     
+    public boolean hasPoints() {
+        return this.actionPoints > 0;
+    }
+    
     public boolean hasPoints(int amount) {
         return amount <= this.actionPoints;
     }

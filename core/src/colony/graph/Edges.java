@@ -60,6 +60,14 @@ public class Edges<E> {
         return this.edges.length;
     }
     
+    public boolean hasEdge(int index) {
+        return this.edges[index] != null;
+    }
+    
+    public boolean hasEdge(Directions dir) {
+        return this.edges[dir.ordinal()] != null;
+    }
+    
     public void addEdge(Directions dir, Edge<E> edge) {
         this.edges[dir.ordinal()] = edge;
     }

@@ -6,7 +6,6 @@ package colony.game.screens.battle;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -53,6 +52,7 @@ public class BattleScene implements Renderable {
         final BattleScene scene = new BattleScene();
         scene.camera = camera;
         scene.dispatcher = game.getDispatcher();
+        scene.highlighter = new SlotHighlighter(game, scene);
         
         game.loadAsset(battleSceneFile, BattleSceneData.class).onAssetChanged(data -> {
             
@@ -177,10 +177,9 @@ public class BattleScene implements Renderable {
     
     private EventDispatcher dispatcher;
     
-    /**
-     * 
-     */
-    public BattleScene() {               
+    private SlotHighlighter highlighter;
+    
+    private BattleScene() {               
         this.backgroundSprite = new Sprite();
         this.tileHighlighter = new Sprite();
         this.sceneObjectSprites = new ArrayList<>();
@@ -282,12 +281,14 @@ public class BattleScene implements Renderable {
             this.tileHighlighter.draw(context.batch);
         }
         
+        this.highlighter.render(context);
+        
         for(int i = 0; i < this.renderables.size(); i++) {
             this.renderables.get(i).render(context);
         }
         
 
-        if(this.selectedEntity != null) {
+        if(this.selectedEntity != null) {                        
             context.batch.end();
             context.drawRect(selectedEntity.bounds.x, selectedEntity.bounds.y, selectedEntity.bounds.width, selectedEntity.bounds.height, Color.PINK);
             context.batch.begin();
@@ -346,6 +347,15 @@ public class BattleScene implements Renderable {
      */
     public CommandQueue getCommandQueue() {
         return commandQueue;
+    }
+    
+    /**
+     * Adds a command
+     * 
+     * @param cmd
+     */
+    public void addCommand(Command cmd) {
+        this.commandQueue.addCommand(cmd);
     }
     
     /**
@@ -495,9 +505,13 @@ public class BattleScene implements Renderable {
         
         if(ent.isPresent()) {
             this.selectedEntity = ent.get();
+            this.highlighter.centerAround(this.getSlot(selectedEntity), this.selectedEntity.getCurrentMovementRange());
+            
             Sounds.playSound(Sounds.uiSlotSelect);
         }
         else {
+            this.highlighter.clear();
+            
             if(this.selectedEntity != null) {
                 Sounds.playSound(Sounds.uiSlotSelect);
             }
@@ -563,6 +577,38 @@ public class BattleScene implements Renderable {
         return entities.stream()
                 .filter( ent -> ent.bounds.contains(worldX, worldY))
                 .findFirst();
+    }
+    
+    /**
+     * If the supplied {@link Slot} is walkable (i.e, is occupied
+     * by an entity or map object)
+     * 
+     * @param slot
+     * @return true if not occupied
+     */
+    public boolean isWalkable(Slot slot) {
+        return !getEntityOnSlot(slot).isPresent() && !isObjectOnSlot(slot);
+    }
+    
+    /**
+     * Determines if there is a map object at the supplied slot
+     * 
+     * @param slot
+     * @return true if there is a map object at the supplied slot
+     */
+    public boolean isObjectOnSlot(Slot slot) {
+        Vector3 worldPos = getWorldPos(slot);
+        bounds.setCenter(worldPos.x, worldPos.y);
+        
+        for(int i = 0; i < this.sceneObjectSprites.size(); i++) {
+            PositionableRenderable obj = this.sceneObjectSprites.get(i);
+            
+            if(bounds.contains(obj.getX(), obj.getY())) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     /**

@@ -3,6 +3,7 @@
  */
 package colony.game.screens.battle.commands;
 
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -21,6 +22,7 @@ public class CommandQueue implements Renderable {
     private BattleScene scene;
     
     private Queue<Command> commandQueue;
+    private Queue<Action>  concurrentQueue;
     private Action currentAction;
     
     /**
@@ -29,6 +31,23 @@ public class CommandQueue implements Renderable {
     public CommandQueue(BattleScene scene) {
         this.scene = scene;
         this.commandQueue = new LinkedList<>();
+        this.concurrentQueue = new LinkedList<>();
+    }
+    
+    public boolean addConcurrentCommand(Command cmd) {
+        CommandResult result = cmd.checkPreconditions(scene);
+        if(result.isFailure()) {
+            // TODO: Send notification of failure
+            Logger.log("** Failed command preconditions: " + result.getMessage());
+            return false;
+        }
+        
+        Action action = cmd.createAction(scene);
+        action.start();
+        
+        this.concurrentQueue.add(action);
+    
+        return true;
     }
     
     public void addCommand(Command cmd) {
@@ -63,6 +82,19 @@ public class CommandQueue implements Renderable {
             }
         }
         
+        Iterator<Action> it = this.concurrentQueue.iterator();
+        while(it.hasNext()) {
+            Action action = it.next();
+            
+            if(!action.status().inProgress()) {
+                action.end();
+                it.remove();
+            }
+            else {
+                action.update(timeStep);
+            }
+        }
+        
         if(this.currentAction != null) {
             this.currentAction.update(timeStep);
         }
@@ -72,6 +104,11 @@ public class CommandQueue implements Renderable {
     public void render(RenderContext context) {
         if(this.currentAction != null) {
             this.currentAction.render(context);
+        }
+        
+        Iterator<Action> it = this.concurrentQueue.iterator();
+        while(it.hasNext()) {
+            it.next().render(context);
         }
     }
 
