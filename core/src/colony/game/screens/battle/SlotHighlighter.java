@@ -137,6 +137,10 @@ public class SlotHighlighter implements Renderable {
         }).touch();
     }
 
+    
+    /**
+     * Clear out the highlighted slots
+     */
     public void clear() {
         this.highlightedSlots.clear();
     }
@@ -399,29 +403,16 @@ public class SlotHighlighter implements Renderable {
     }
     
     private Set<GraphNode<Slot>> getMoveableNodes(GraphNode<Slot> node, int range) {
-//        Set<GraphNode<Slot>> result = new TreeSet<>( (a,b) -> {
-//            Slot sa = a.getValue();
-//            Slot sb = b.getValue();
-//            int r = sa.x - sb.x;
-//            if(r==0) {
-//                r = sa.y - sb.y;
-//            }
-//            return r;
-//        });
-        
         Set<GraphNode<Slot>> results = new HashSet<>();
-        Set<GraphNode<Slot>> visited = new HashSet<>();
         
-        gatherMoveableNodes(node, results, visited, range);
+        gatherMoveableNodes(node, results, range);
         return results;
     }
     
-    private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, Set<GraphNode<Slot>> visited, int range) {
-        if(range < 0 /*|| visited.contains(currentNode)*/) {
+    private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, int range) {
+        if(range < 0) {
             return;
         }
-        
-        visited.add(currentNode);
         
         Slot slot = currentNode.getValue();
         if(this.scene.isWalkable(slot)) {
@@ -434,7 +425,7 @@ public class SlotHighlighter implements Renderable {
             if(e!=null) {
                 GraphNode<Slot> other = e.getRight();
                 
-                gatherMoveableNodes(other, results, visited, range-1);
+                gatherMoveableNodes(other, results, range-1);
             }
         }
     }

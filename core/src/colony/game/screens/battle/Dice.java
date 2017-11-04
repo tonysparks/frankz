@@ -29,4 +29,11 @@ public class Dice {
         return d10;
     }
 
+    public int rand(int max) {
+        return this.rand.nextInt(max);
+    }
+    
+    public int rand(int min, int max) {
+        return min + this.rand.nextInt(max - min);
+    }
 }

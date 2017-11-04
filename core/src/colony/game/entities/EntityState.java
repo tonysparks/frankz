@@ -12,5 +12,6 @@ public enum EntityState {
     Walking,
     Attacking,
     Dying,
+    Pushed,
     Dead,
 }

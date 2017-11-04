@@ -14,6 +14,12 @@ public class EntityData {
         public int offenseFactor=20;
         public int attackRange=3;
         public int damage=1;
+        
+        public int tossRange=-1;
+        
+        public boolean hasTossAttack() {
+            return tossRange > 0;
+        }
     }
     
     public static class MovementData {
@@ -29,6 +35,7 @@ public class EntityData {
         public int defenseNeighborFactor = 15;
         
         public float movementSpeed = 16.5f;
+        public float pushedSpeed = 20f;
     }
     
     public float x, y;

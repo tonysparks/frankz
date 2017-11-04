@@ -63,6 +63,7 @@ public class Entity implements Updatable, PositionableRenderable {
     public Vector2 pos;
     public Vector2 centerPos;
     public Rectangle bounds;
+    public Vector2 facing;
     
     private EntityModel model;
     private EntityState state;
@@ -79,6 +80,8 @@ public class Entity implements Updatable, PositionableRenderable {
     public Entity() {
         this.pos = new Vector2();
         this.centerPos = new Vector2();
+        this.facing = new Vector2();
+        
         this.bounds = new Rectangle();
         
         this.actionMeter = new ActionMeter(0);
@@ -309,10 +312,25 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     /**
+     * @return the facing
+     */
+    public Vector2 getFacing() {
+        return facing;
+    }
+    
+    /**
      * @return the bounds
      */
     public Rectangle getBounds() {
         return bounds;
+    }
+    
+    public void setAsAttacker() {
+        this.facing.set(1, 0);
+    }
+    
+    public void setAsDefender() {
+        this.facing.set(-1, 0);
     }
     
     public Entity setPos(Vector3 pos) {

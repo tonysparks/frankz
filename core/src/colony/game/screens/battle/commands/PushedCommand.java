@@ -3,32 +3,27 @@
  */
 package colony.game.screens.battle.commands;
 
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import colony.game.TimeStep;
 import colony.game.entities.Entity;
-import colony.game.entities.EntityData.MovementData;
 import colony.game.entities.EntityState;
 import colony.game.screens.battle.BattleScene;
-import colony.game.screens.battle.Board.Slot;
-import colony.game.screens.battle.PathPlanner;
 import colony.gfx.RenderContext;
-import colony.graph.GraphNode;
 
 /**
+ * An {@link Entity} has been pushed
+ * 
  * @author Tony
  *
  */
-public class MoveToCommand extends Command {
+public class PushedCommand extends Command {
 
-    private PathPlanner pathPlanner;
-    
     /**
      * @param params
      */
-    public MoveToCommand(CommandParameters params) {
+    public PushedCommand(CommandParameters params) {
         super(params);
     }
 
@@ -39,9 +34,7 @@ public class MoveToCommand extends Command {
         if(entity == null) {
             return failed("No selected entity");
         }
-        
-        MovementData data = entity.getMovementData();
-                
+                        
         if(parameters.targetSlot == null) {
             return failed("No target slot");
         }
@@ -49,24 +42,7 @@ public class MoveToCommand extends Command {
         if(scene.getEntityOnSlot(parameters.targetSlot).isPresent()) {
             return failed("Target slot is already occupied");
         }
-        
-        Slot start = scene.getSlot(entity);
-        Slot end = parameters.targetSlot;
-        
-        this.pathPlanner = scene.newPathPlanner(entity);
-        
-        int cost = this.pathPlanner.pathCost(start, end) * data.actionPoints;
-        if(!entity.hasPoints(cost)) {
-            return failed("Not enough action points");
-        }
-        
-        this.pathPlanner.findPath(start, end);
-        if(!this.pathPlanner.hasPath()) {
-            return failed("No valid path to target slot");
-        }
-        
-        entity.usePoints(cost);
-        
+                        
         return inProgress();
     }
 
@@ -77,32 +53,22 @@ public class MoveToCommand extends Command {
             boolean isCancelled;
             boolean atDestination;
             
+            Vector3 worldPos = scene.getWorldPos(parameters.targetSlot);
+            Vector2 waypoint = new Vector2(worldPos.x, worldPos.y);
+            
+            float speed = parameters.selectedEntity.getStats().pushedSpeed;
             
             @Override
-            public void render(RenderContext context) {
-                for(GraphNode<Slot> node : pathPlanner.getPath()) {
-                    
-                    Sprite sprite = scene.getTileHighlighter();
-                    Vector3 worldPos = scene.getWorldPos(node.getValue());
-                    sprite.setPosition(worldPos.x-BattleScene.tileHalfWidth, worldPos.y-BattleScene.tileHalfHeight);
-                    sprite.draw(context.batch);
-                }
+            public void render(RenderContext context) {                
             }
 
             @Override
             public void update(TimeStep timeStep) {
                 Entity entity = parameters.selectedEntity;
-                Vector2 waypoint = pathPlanner.nextWaypoint(entity);
-                if(waypoint==null) {
-                    atDestination = true;
-                    return;
-                }
+                                
                 
-                final float movementSpeed = entity.getStats().movementSpeed;
-                
-                Vector2 vel = waypoint.cpy().nor();
-                
-                // entity.setCurrentDirection(Direction.getDirection(vel));                
+                final float movementSpeed = Math.max(speed *= 0.79f, 3f);                   
+                Vector2 vel = waypoint.cpy().sub(entity.getPos()).nor();
                 
                 float dt = (float)timeStep.asFraction();            
                 float deltaX = (vel.x * movementSpeed * dt);
@@ -110,16 +76,15 @@ public class MoveToCommand extends Command {
                                 
                 entity.moveBy(deltaX, deltaY);    
                 
-                if(pathPlanner.atDestination()) {
-                    if(entity.getCenterPos().epsilonEquals(pathPlanner.getDestination(), 0.001f)) {                        
-                        atDestination = true;
-                    }
+                if(entity.getPos().epsilonEquals(waypoint, 0.1f)) {                        
+                    atDestination = true;
                 }
+                
             }
 
             @Override
             protected void doStart() {            
-                parameters.selectedEntity.setState(EntityState.Walking);
+                parameters.selectedEntity.setState(EntityState.Pushed);
             }
             
             @Override
@@ -132,7 +97,6 @@ public class MoveToCommand extends Command {
             @Override
             public void cancel() {
                 isCancelled = true;
-                pathPlanner.clearPath();                
             }
 
             @Override

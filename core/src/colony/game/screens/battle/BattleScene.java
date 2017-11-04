@@ -25,6 +25,7 @@ import colony.game.screens.battle.commands.Command;
 import colony.game.screens.battle.commands.CommandParameters;
 import colony.game.screens.battle.commands.CommandQueue;
 import colony.game.screens.battle.commands.MoveToCommand;
+import colony.game.screens.battle.commands.TossCommand;
 import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
@@ -111,6 +112,7 @@ public class BattleScene implements Renderable {
                     
                     Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
                     ent.setPos(worldPos);
+                    ent.setAsAttacker();
                 }
             }
             
@@ -124,6 +126,7 @@ public class BattleScene implements Renderable {
                     
                     Vector3 worldPos = scene.getWorldPos(entData.indexX, entData.indexY);
                     ent.setPos(worldPos);
+                    ent.setAsDefender();
                 }
             }
             
@@ -165,7 +168,7 @@ public class BattleScene implements Renderable {
     
     private List<PositionableRenderable> renderables;
     
-    private Entity selectedEntity;
+    private Entity selectedEntity, secondSelectedEntity;
     private Slot selectedSlot;
         
     private BoardGraph graph;
@@ -359,6 +362,15 @@ public class BattleScene implements Renderable {
     }
     
     /**
+     * Adds a command that will be executed concurrently 
+     * 
+     * @param cmd
+     */
+    public void addConcurrentCommand(Command cmd) {
+        this.commandQueue.addConcurrentCommand(cmd);
+    }
+    
+    /**
      * @return the attacker
      */
     public Faction getAttacker() {
@@ -492,6 +504,32 @@ public class BattleScene implements Renderable {
         }
     }
     
+    public boolean hasSecondSelectedEntity() {
+        return this.secondSelectedEntity != null;
+    }
+    
+    /**
+     * Selects a second {@link Entity} who makes them eligible for dispatching
+     * {@link Command}s to.
+     * 
+     * @param ent the second selected entity
+     */
+    public void selectSecondEntity(Optional<Entity> ent) {
+        
+        if(ent.isPresent()) {
+            this.secondSelectedEntity = ent.get();
+                        
+            Sounds.playSound(Sounds.uiSlotSelect);
+        }
+        else {           
+            if(this.secondSelectedEntity != null) {
+                Sounds.playSound(Sounds.uiSlotSelect);
+            }
+            
+            this.secondSelectedEntity = null;
+        }
+    }
+    
     
     /**
      * Selects an {@link Entity} who makes them eligible for dispatching
@@ -530,6 +568,13 @@ public class BattleScene implements Renderable {
         return this.selectedEntity != null;
     }
     
+    /**
+     * @return the selectedEntity
+     */
+    public Entity getSelectedEntity() {
+        return selectedEntity;
+    }
+    
     private boolean isSelectedEntityCommandable() {
         if(hasSelectedEntity()) {
             return this.currentTurn.getFactionsTurn().equals(this.selectedEntity.getFaction());
@@ -546,9 +591,8 @@ public class BattleScene implements Renderable {
     public void issueMoveToCommand(Slot targetSlot) {
         if(isSelectedEntityCommandable()) {
             this.commandQueue.addCommand(new MoveToCommand(new CommandParameters(this.selectedEntity, targetSlot)));
-        }
-        
-        this.selectedEntity = null;        
+            this.highlighter.clear();
+        }               
     }
     
     /**
@@ -560,9 +604,20 @@ public class BattleScene implements Renderable {
     public void issueAttackCommand(Entity enemy) {
         if(isSelectedEntityCommandable()) {
             this.commandQueue.addCommand(new AttackCommand(new CommandParameters(this.selectedEntity, enemy)));
+            this.highlighter.clear();
+        }               
+    }
+    
+    /**
+     * Issues a {@link TossCommand}
+     * 
+     * @param targetSlot
+     */
+    public void issueTossCommand(Slot targetSlot) {
+        if(isSelectedEntityCommandable() && hasSecondSelectedEntity()) {
+            this.commandQueue.addCommand(new TossCommand(new CommandParameters(this.selectedEntity, this.secondSelectedEntity, targetSlot)));
+            this.highlighter.clear();
         }
-        
-        this.selectedEntity = null;        
     }
     
     private Optional<Entity> findEntity(float worldX, float worldY) {

@@ -6,6 +6,8 @@ package colony.game.screens.battle;
 import java.util.Optional;
 
 import com.badlogic.gdx.Input.Buttons;
+import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
@@ -75,14 +77,28 @@ public class BattleScreenInputProcessor implements InputProcessor {
         if(button == Buttons.RIGHT) {
             if(scene.hasSelectedEntity()) {
                 Optional<Entity> ent = scene.getEntity(pos.x, pos.y);
-                if(ent.isPresent()) {
-                    scene.issueAttackCommand(ent.get());
+                
+                if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && scene.getSelectedEntity().getAttackData().hasTossAttack()) {
+                    if(scene.hasSecondSelectedEntity() && !ent.isPresent()) {
+                        Slot slot = scene.getSlot(pos.x, pos.y);
+                        if(slot!=null) {
+                            scene.issueTossCommand(slot);
+                        }
+                    }
+                    else {
+                        scene.selectSecondEntity(ent);
+                    }
                 }
                 else {
-
-                    Slot slot = scene.getSlot(pos.x, pos.y);
-                    if(slot!=null) {
-                        scene.issueMoveToCommand(slot);
+                    if(ent.isPresent()) {
+                        scene.issueAttackCommand(ent.get());
+                    }
+                    else {
+    
+                        Slot slot = scene.getSlot(pos.x, pos.y);
+                        if(slot!=null) {
+                            scene.issueMoveToCommand(slot);
+                        }
                     }
                 }
             }

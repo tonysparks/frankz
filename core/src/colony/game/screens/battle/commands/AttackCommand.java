@@ -18,11 +18,13 @@ import colony.util.Timer;
  */
 public class AttackCommand extends Command {
 
-    public class AttackAction implements Action {
+    public class AttackAction extends Action {
         protected Timer timer;
         protected BattleScene scene;
         
-        public AttackAction(BattleScene scene) {
+        public AttackAction(AttackCommand cmd, BattleScene scene) {
+            super(cmd);
+            
             this.scene = scene;            
             this.timer = new Timer(false, 1_500);
         }
@@ -42,7 +44,7 @@ public class AttackCommand extends Command {
         }
 
         @Override
-        public void start() {            
+        protected void doStart() {            
             parameters.selectedEntity.setState(EntityState.Attacking);
             
             Dice dice = scene.getDice();
@@ -73,7 +75,7 @@ public class AttackCommand extends Command {
         }
         
         @Override
-        public void end() {                
+        protected void doEnd() {                
             parameters.selectedEntity.setState(EntityState.Idle);
         }
 
@@ -135,7 +137,7 @@ public class AttackCommand extends Command {
 
     @Override
     public Action createAction(BattleScene scene) {
-        return new AttackAction(scene);           
+        return new AttackAction(this, scene);           
     }
 
 }

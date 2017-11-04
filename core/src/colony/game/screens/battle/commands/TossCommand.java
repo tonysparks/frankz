@@ -15,13 +15,16 @@ public class TossCommand extends AttackCommand {
 
     public class TossAction extends AttackCommand.AttackAction {
         
-        public TossAction(BattleScene scene) {
-            super(scene);
+        public TossAction(TossCommand cmd, BattleScene scene) {
+            super(cmd, scene);
         }
         
         @Override
         protected void onHit() {
-//            this.scene.get
+            //int slotsTossed = scene.getDice().rand(1, parameters.selectedEntity.getAttackData().tossRange);
+            
+            
+            scene.addConcurrentCommand(new PushedCommand(new CommandParameters(parameters.targetEntity, parameters.targetSlot)));
         }
         
     }
@@ -35,8 +38,7 @@ public class TossCommand extends AttackCommand {
 
     @Override
     public Action createAction(BattleScene scene) {
-        // TODO Auto-generated method stub
-        return null;
+        return new TossAction(this, scene);
     }
 
 }

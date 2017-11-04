@@ -12,11 +12,28 @@ import colony.gfx.Renderable;
  * @author Tony
  *
  */
-public interface Action extends Renderable {
+public abstract class Action implements Renderable {
 
-    void start();
-    void end();
-    void cancel();
+    protected Command command;
     
-    CommandResult status();
+    public Action(Command command) {
+        this.command = command;
+    }
+    
+    public void start() {
+        doStart();
+        this.command.emitStartEvent();
+    }
+    
+    public void end() {
+        doEnd();
+        this.command.emitEndEvent();
+    }
+    
+    abstract protected void doStart();
+    abstract protected void doEnd();
+    
+    abstract public void cancel();
+    
+    abstract public CommandResult status();
 }
