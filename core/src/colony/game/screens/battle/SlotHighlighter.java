@@ -232,80 +232,170 @@ public class SlotHighlighter implements Renderable {
         return count==8;
     }
     
+    private boolean hasEdge(Set<GraphNode<Slot>> slots, Edges<Slot> edges, Directions dir) {
+        return edges.hasEdge(dir) && slots.contains(edges.get(dir).getRight());
+    }
+    
     private boolean isBottomLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
         Edges<Slot> edges = currentNode.edges();
-        return !edges.hasEdge(Directions.NW) &&
-               !edges.hasEdge(Directions.N) &&
-               !edges.hasEdge(Directions.NE) &&
-               !edges.hasEdge(Directions.E) &&
-               !edges.hasEdge(Directions.W) &&
-                edges.hasEdge(Directions.S)
-               ;
+        return !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.N);
+        
     }
     
     private boolean isBottomRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
         Edges<Slot> edges = currentNode.edges();
-        return !edges.hasEdge(Directions.NW) &&
-               !edges.hasEdge(Directions.N) &&
-               !edges.hasEdge(Directions.NE) &&
-                edges.hasEdge(Directions.E) &&
-               !edges.hasEdge(Directions.W) &&
-               !edges.hasEdge(Directions.S) &&
-               !edges.hasEdge(Directions.E) &&
-               !edges.hasEdge(Directions.SE)
-               ;
+        return !hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.N);
     }
     
     private boolean isCornerBottom(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.E) &&
+             //  !hasEdge(slots, edges, Directions.SE) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.N);
     }
     
     private boolean isCornerLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.W) &&
+              // !hasEdge(slots, edges, Directions.SW) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.N);
     }
     
     private boolean isCornerRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+             //  !hasEdge(slots, edges, Directions.NE) &&
+               !hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.W);
     }
     
     private boolean isCornerTop(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+             //  !hasEdge(slots, edges, Directions.NW) &&
+               !hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.E);
     }
     private boolean isDoubleDown(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.E);
     }
     private boolean isDoubleUp(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.W) &&
+               !hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.S);
     }
     private boolean isHookBottomLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.W) &&
+               !hasEdge(slots, edges, Directions.E) &&
+          //     !hasEdge(slots, edges, Directions.SE) &&
+          //     !hasEdge(slots, edges, Directions.SW) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.N);
     }
     private boolean isHookBottomRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+           //    !hasEdge(slots, edges, Directions.NE) &&
+               !hasEdge(slots, edges, Directions.E) &&
+           //    !hasEdge(slots, edges, Directions.SE) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.W);
     }
     private boolean isHookTopLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+           //    !hasEdge(slots, edges, Directions.NW) &&
+               !hasEdge(slots, edges, Directions.W) &&
+           //    !hasEdge(slots, edges, Directions.SW) &&
+               !hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.E);
     }
     private boolean isHookTopRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+           //    !hasEdge(slots, edges, Directions.NW) &&
+               !hasEdge(slots, edges, Directions.W) &&
+               !hasEdge(slots, edges, Directions.E) &&
+           //    !hasEdge(slots, edges, Directions.NE) &&
+               !hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S);
     }
     private boolean isInnerCornerBottom(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.SE) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.NE) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.NW) &&
+                hasEdge(slots, edges, Directions.SW) &&
+                hasEdge(slots, edges, Directions.W);
     }
     private boolean isInnerCornerLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.SW) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.NE) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.SE) &&
+                hasEdge(slots, edges, Directions.NW) &&
+                hasEdge(slots, edges, Directions.W);
     }
     private boolean isInnerCornerRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.NE) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.SW) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.SE) &&
+                hasEdge(slots, edges, Directions.NW) &&
+                hasEdge(slots, edges, Directions.W);
     }
     private boolean isInnerCornerTop(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.NW) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.NE) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S) &&
+                hasEdge(slots, edges, Directions.SE) &&
+                hasEdge(slots, edges, Directions.SW) &&
+                hasEdge(slots, edges, Directions.W);
     }
     private boolean isUpLeft(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S);
     }
     private boolean isUpRight(Set<GraphNode<Slot>> slots, GraphNode<Slot> currentNode) {
-        return false;
+        Edges<Slot> edges = currentNode.edges();
+        return !hasEdge(slots, edges, Directions.N) &&
+                hasEdge(slots, edges, Directions.W) &&
+                hasEdge(slots, edges, Directions.E) &&
+                hasEdge(slots, edges, Directions.S);
     }
     
     private Set<GraphNode<Slot>> getMoveableNodes(GraphNode<Slot> node, int range) {
@@ -327,7 +417,7 @@ public class SlotHighlighter implements Renderable {
     }
     
     private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, Set<GraphNode<Slot>> visited, int range) {
-        if(range < 1 || visited.contains(currentNode)) {
+        if(range < 0 /*|| visited.contains(currentNode)*/) {
             return;
         }
         
