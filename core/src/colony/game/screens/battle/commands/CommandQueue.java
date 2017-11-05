@@ -21,8 +21,8 @@ public class CommandQueue implements Renderable {
 
     private BattleScene scene;
     
-    private Queue<Command> commandQueue;
-    private Queue<Action>  concurrentQueue;
+    private Queue<Command> commandQueue, commandsToAdd;
+    private Queue<Action>  concurrentQueue, concurrentCommandsToAdd;
     private Action currentAction;
     
     /**
@@ -32,7 +32,11 @@ public class CommandQueue implements Renderable {
         this.scene = scene;
         this.commandQueue = new LinkedList<>();
         this.concurrentQueue = new LinkedList<>();
+        
+        this.commandsToAdd = new LinkedList<>();
+        this.concurrentCommandsToAdd = new LinkedList<>();
     }
+    
     
     public boolean addConcurrentCommand(Command cmd) {
         CommandResult result = cmd.checkPreconditions(scene);
@@ -45,22 +49,28 @@ public class CommandQueue implements Renderable {
         Action action = cmd.createAction(scene);
         action.start();
         
-        this.concurrentQueue.add(action);
+        this.concurrentCommandsToAdd.add(action);
     
         return true;
     }
     
     public void addCommand(Command cmd) {
-        this.commandQueue.add(cmd);
+        this.commandsToAdd.add(cmd);
     }
     
     public boolean isEmpty() {
-        return this.commandQueue.isEmpty();
+        return this.commandQueue.isEmpty() && this.commandsToAdd.isEmpty() &&
+                this.concurrentQueue.isEmpty() && this.concurrentCommandsToAdd.isEmpty();
     }
     
     
     @Override
     public void update(TimeStep timeStep) {
+        while(!this.commandsToAdd.isEmpty()) {
+            this.commandQueue.add(this.commandsToAdd.poll());
+        }
+        
+        
         if(this.currentAction == null || !this.currentAction.status().inProgress()) {
             if(this.currentAction != null) {
                 this.currentAction.end();
@@ -80,6 +90,10 @@ public class CommandQueue implements Renderable {
                     this.currentAction.start();
                 }
             }
+        }
+        
+        while(!this.concurrentCommandsToAdd.isEmpty()) {
+            this.concurrentQueue.add(this.concurrentCommandsToAdd.poll());
         }
         
         Iterator<Action> it = this.concurrentQueue.iterator();

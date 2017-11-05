@@ -3,6 +3,8 @@
  */
 package colony.game.screens.battle.commands;
 
+import java.util.Optional;
+
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
@@ -10,6 +12,7 @@ import colony.game.TimeStep;
 import colony.game.entities.Entity;
 import colony.game.entities.EntityState;
 import colony.game.screens.battle.BattleScene;
+import colony.game.screens.battle.Board.Slot;
 import colony.gfx.RenderContext;
 
 /**
@@ -58,6 +61,9 @@ public class PushedCommand extends Command {
             
             float speed = parameters.selectedEntity.getStats().pushedSpeed;
             
+            EntityState previousState = parameters.selectedEntity.getState();
+            Slot currentSlot = scene.getSlot(parameters.selectedEntity);
+            
             @Override
             public void render(RenderContext context) {                
             }
@@ -73,25 +79,54 @@ public class PushedCommand extends Command {
                 float dt = (float)timeStep.asFraction();            
                 float deltaX = (vel.x * movementSpeed * dt);
                 float deltaY = (vel.y * movementSpeed * dt);
-                                
-                entity.moveBy(deltaX, deltaY);    
                 
-                if(entity.getPos().epsilonEquals(waypoint, 0.1f)) {                        
-                    atDestination = true;
+                Vector2 pos = entity.getPos();
+                float destX = pos.x + deltaX;
+                float destY = pos.y + deltaY;
+                
+                Slot nextSlot = scene.getSlot(destX, destY);
+                if(currentSlot != nextSlot) {
+                    currentSlot = nextSlot;
+                    Optional<Entity> entityToMove = scene.getEntityOnSlot(nextSlot);
+                    
+                    entityToMove.ifPresent( ent -> {
+                        if(ent!=entity) {
+                            // if we can not push the entity that's on this slot over,
+                            // we stop the current push
+                            Optional<Slot> adjacentSlot = scene.getEmptyAdjacentSlot(currentSlot);
+                            if(adjacentSlot.isPresent()) {
+                                Slot targetSlot = adjacentSlot.get();
+                                CommandParameters params = new CommandParameters(ent, targetSlot);
+                                scene.addConcurrentCommand(new PushedCommand(params));
+                            }
+                            else {
+                                atDestination = true;
+                            }
+                        }
+                    });
+                }
+                
+                if(!atDestination) {
+                    entity.moveBy(deltaX, deltaY);    
+                    
+                    if(entity.getPos().epsilonEquals(waypoint, 0.1f)) {                        
+                        atDestination = true;
+                    }
                 }
                 
             }
 
             @Override
-            protected void doStart() {            
+            protected void doStart() {                        
                 parameters.selectedEntity.setState(EntityState.Pushed);
             }
             
             @Override
             protected void doEnd() {
+                Entity ent = parameters.selectedEntity;
                 // snap the entity to the appropriate slot center
-                parameters.selectedEntity.setPos(scene.getWorldPos(parameters.targetSlot));
-                parameters.selectedEntity.setState(EntityState.Idle);
+                ent.setPos(scene.getWorldPos(parameters.targetSlot));                
+                ent.setState(previousState);                
             }
 
             @Override

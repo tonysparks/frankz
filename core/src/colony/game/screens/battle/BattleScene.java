@@ -30,6 +30,9 @@ import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 import colony.gfx.SpriteRenderable;
+import colony.graph.Edge;
+import colony.graph.Edges;
+import colony.graph.GraphNode;
 import colony.sfx.Sounds;
 import colony.util.EventDispatcher;
 import colony.util.Timer;
@@ -367,7 +370,7 @@ public class BattleScene implements Renderable {
      * @param cmd
      */
     public void addConcurrentCommand(Command cmd) {
-        this.commandQueue.addConcurrentCommand(cmd);
+        this.commandQueue.addConcurrentCommand(cmd); 
     }
     
     /**
@@ -411,6 +414,16 @@ public class BattleScene implements Renderable {
         return new PathPlanner(this, this.graph, ent);
     }
     
+    /**
+     * Sets the highlight
+     * 
+     * @param worldX
+     * @param worldY
+     * @param radius
+     */
+    public void setHighlighter(float worldX, float worldY, int radius) {
+        this.highlighter.centerAround(getSlot(worldX, worldY), true, radius);
+    }
 
     /**
      * Set the highlighted slot
@@ -699,6 +712,30 @@ public class BattleScene implements Renderable {
         }
         
         return entity;        
+    }
+    
+    /**
+     * Gets a {@link Slot} that is walkable that's adjacent to the supplied
+     * {@link Slot}
+     * 
+     * @param slot
+     * @return
+     */
+    public Optional<Slot> getEmptyAdjacentSlot(Slot slot) {
+        GraphNode<Slot> n = this.graph.getNode(slot);
+        
+        Edges<Slot> edges = n.edges();
+        for(int i = 0; i < edges.size(); i++) {
+            Edge<Slot> e = edges.get(i);
+            if(e!=null) {
+                Slot s = e.getRight().getValue();
+                if(isWalkable(s)) {
+                    return Optional.ofNullable(s);
+                }
+            }
+        }
+        
+        return Optional.empty();
     }
     
     /**

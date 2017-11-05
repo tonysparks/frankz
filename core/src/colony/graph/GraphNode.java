@@ -3,6 +3,8 @@
  */
 package colony.graph;
 
+import java.util.function.Consumer;
+
 import colony.graph.Edges.Directions;
 
 /**
@@ -96,5 +98,19 @@ public class GraphNode<E> {
         }
         
         return (result);
+    }
+    
+    /**
+     * Iterates over each edge
+     * 
+     * @param f
+     */
+    public void forEachEdge(Consumer<GraphNode<E>> f) {        
+        for(int i = 0; i < edges.size(); i++) {
+            Edge<E> e = edges.get(i);
+            if(e!=null) {
+                f.accept(e.getRight());
+            }
+        }
     }
 }

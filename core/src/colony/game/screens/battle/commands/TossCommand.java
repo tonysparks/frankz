@@ -20,10 +20,7 @@ public class TossCommand extends AttackCommand {
         }
         
         @Override
-        protected void onHit() {
-            //int slotsTossed = scene.getDice().rand(1, parameters.selectedEntity.getAttackData().tossRange);
-            
-            
+        protected void onHit() {            
             scene.addConcurrentCommand(new PushedCommand(new CommandParameters(parameters.targetEntity, parameters.targetSlot)));
         }
         
@@ -35,6 +32,14 @@ public class TossCommand extends AttackCommand {
     public TossCommand(CommandParameters params) {
         super(params);
     }
+    
+    @Override
+    public CommandResult checkPreconditions(BattleScene scene) {    
+        CommandResult result = super.checkPreconditions(scene);
+        // TODO: Verify targetSlot is within tossRadius
+        return result;
+    }
+    
 
     @Override
     public Action createAction(BattleScene scene) {

@@ -86,6 +86,7 @@ public class BattleScreenInputProcessor implements InputProcessor {
                         }
                     }
                     else {
+                        scene.setHighlighter(pos.x, pos.y, scene.getSelectedEntity().getAttackData().tossRange);
                         scene.selectSecondEntity(ent);
                     }
                 }

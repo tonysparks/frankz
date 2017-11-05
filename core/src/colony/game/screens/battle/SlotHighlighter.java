@@ -146,16 +146,28 @@ public class SlotHighlighter implements Renderable {
     }
     
     /**
-     * Center the slot highlighter around the supplied {@link Slot}
+     * Center the slot highlighter around the supplied {@link Slot}.  This
+     * will omit unwalkable tiles
      * 
      * @param slot
      * @param range
      */
     public void centerAround(Slot slot, int range) {
+        centerAround(slot, false, range);
+    }
+    
+    /**
+     * Center the slot highlighter around the supplied {@link Slot}
+     * 
+     * @param slot
+     * @param all - if this should include all tiles (including unwalkable tiles)
+     * @param range
+     */
+    public void centerAround(Slot slot, boolean all, int range) {
         clear();
                 
         GraphNode<Slot> node = this.graph.getNode(slot);
-        Set<GraphNode<Slot>> slots = getMoveableNodes(node, range);
+        Set<GraphNode<Slot>> slots = getMoveableNodes(node, all, range);
         for(GraphNode<Slot> n : slots) {
             //this.highlightedSlots.add(new HighlightedSlot(n.getValue(), this.bottomLeft));
             
@@ -402,20 +414,20 @@ public class SlotHighlighter implements Renderable {
                 hasEdge(slots, edges, Directions.S);
     }
     
-    private Set<GraphNode<Slot>> getMoveableNodes(GraphNode<Slot> node, int range) {
+    private Set<GraphNode<Slot>> getMoveableNodes(GraphNode<Slot> node, boolean all, int range) {
         Set<GraphNode<Slot>> results = new HashSet<>();
         
-        gatherMoveableNodes(node, results, range);
+        gatherMoveableNodes(node, results, all, range);
         return results;
     }
     
-    private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, int range) {
+    private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, boolean all, int range) {
         if(range < 0) {
             return;
         }
         
         Slot slot = currentNode.getValue();
-        if(this.scene.isWalkable(slot)) {
+        if(all || this.scene.isWalkable(slot)) {
             results.add(currentNode);
         }
         
@@ -425,7 +437,7 @@ public class SlotHighlighter implements Renderable {
             if(e!=null) {
                 GraphNode<Slot> other = e.getRight();
                 
-                gatherMoveableNodes(other, results, range-1);
+                gatherMoveableNodes(other, results, all, range-1);
             }
         }
     }
