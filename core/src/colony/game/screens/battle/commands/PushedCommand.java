@@ -42,9 +42,9 @@ public class PushedCommand extends Command {
             return failed("No target slot");
         }
         
-        if(scene.getEntityOnSlot(parameters.targetSlot).isPresent()) {
-            return failed("Target slot is already occupied");
-        }
+//        if(scene.getEntityOnSlot(parameters.targetSlot).isPresent()) {
+//            return failed("Target slot is already occupied");
+//        }
                         
         return inProgress();
     }

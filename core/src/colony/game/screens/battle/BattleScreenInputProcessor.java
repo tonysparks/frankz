@@ -9,6 +9,7 @@ import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 
@@ -79,14 +80,14 @@ public class BattleScreenInputProcessor implements InputProcessor {
                 Optional<Entity> ent = scene.getEntity(pos.x, pos.y);
                 
                 if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && scene.getSelectedEntity().getAttackData().hasTossAttack()) {
-                    if(scene.hasSecondSelectedEntity() && !ent.isPresent()) {
+                    if(scene.hasSecondSelectedEntity() /*&& !ent.isPresent()*/) {
                         Slot slot = scene.getSlot(pos.x, pos.y);
                         if(slot!=null) {
                             scene.issueTossCommand(slot);
                         }
                     }
                     else {
-                        scene.setHighlighter(pos.x, pos.y, scene.getSelectedEntity().getAttackData().tossRange);
+                        scene.setHighlighter(pos.x, pos.y, scene.getSelectedEntity().getAttackData().tossRange, Color.SCARLET);
                         scene.selectSecondEntity(ent);
                     }
                 }

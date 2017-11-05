@@ -421,8 +421,8 @@ public class BattleScene implements Renderable {
      * @param worldY
      * @param radius
      */
-    public void setHighlighter(float worldX, float worldY, int radius) {
-        this.highlighter.centerAround(getSlot(worldX, worldY), true, radius);
+    public void setHighlighter(float worldX, float worldY, int radius, Color color) {
+        this.highlighter.centerAround(getSlot(worldX, worldY), true, radius, color);
     }
 
     /**
@@ -556,7 +556,7 @@ public class BattleScene implements Renderable {
         
         if(ent.isPresent()) {
             this.selectedEntity = ent.get();
-            this.highlighter.centerAround(this.getSlot(selectedEntity), this.selectedEntity.getCurrentMovementRange());
+            this.highlighter.centerAround(this.getSlot(selectedEntity), this.selectedEntity.getCurrentMovementRange(), Color.WHITE);
             
             Sounds.playSound(Sounds.uiSlotSelect);
         }
@@ -568,6 +568,7 @@ public class BattleScene implements Renderable {
             }
             
             this.selectedEntity = null;
+            this.secondSelectedEntity = null;
         }
     }
     
@@ -630,6 +631,8 @@ public class BattleScene implements Renderable {
         if(isSelectedEntityCommandable() && hasSecondSelectedEntity()) {
             this.commandQueue.addCommand(new TossCommand(new CommandParameters(this.selectedEntity, this.secondSelectedEntity, targetSlot)));
             this.highlighter.clear();
+            
+            this.secondSelectedEntity = null;
         }
     }
     

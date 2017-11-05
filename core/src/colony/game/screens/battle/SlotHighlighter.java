@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.math.Vector3;
 
@@ -20,8 +21,8 @@ import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 import colony.graph.Edge;
 import colony.graph.Edges;
-import colony.graph.GraphNode;
 import colony.graph.Edges.Directions;
+import colony.graph.GraphNode;
 
 /**
  * Responsible for highlighting slots centered around a supplied {@link Slot} - this
@@ -46,6 +47,7 @@ public class SlotHighlighter implements Renderable {
             Vector3 worldPos = scene.getWorldPos(slot);
             
             sprite.setPosition(worldPos.x - BattleScene.tileHalfWidth, worldPos.y - BattleScene.tileHalfHeight);
+            sprite.setColor(color);
             sprite.draw(context.batch);
         }
     }
@@ -74,6 +76,8 @@ public class SlotHighlighter implements Renderable {
     
     private BoardGraph graph;
     private BattleScene scene;
+    
+    private Color color;
     
     /**
      * 
@@ -143,6 +147,7 @@ public class SlotHighlighter implements Renderable {
      */
     public void clear() {
         this.highlightedSlots.clear();
+        this.color = Color.WHITE;
     }
     
     /**
@@ -152,8 +157,8 @@ public class SlotHighlighter implements Renderable {
      * @param slot
      * @param range
      */
-    public void centerAround(Slot slot, int range) {
-        centerAround(slot, false, range);
+    public void centerAround(Slot slot, int range, Color color) {
+        centerAround(slot, false, range, color);
     }
     
     /**
@@ -163,9 +168,11 @@ public class SlotHighlighter implements Renderable {
      * @param all - if this should include all tiles (including unwalkable tiles)
      * @param range
      */
-    public void centerAround(Slot slot, boolean all, int range) {
+    public void centerAround(Slot slot, boolean all, int range, Color color) {
         clear();
-                
+        
+        this.color = color;
+        
         GraphNode<Slot> node = this.graph.getNode(slot);
         Set<GraphNode<Slot>> slots = getMoveableNodes(node, all, range);
         for(GraphNode<Slot> n : slots) {
