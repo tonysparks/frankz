@@ -4,6 +4,7 @@
 package colony.game.screens.battle.commands;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
 
@@ -24,12 +25,13 @@ public class CompositeCommand extends Command {
     /**
      * @param params
      */
-    public CompositeCommand(Queue<Command> cmds) {
+    public CompositeCommand(Collection<Command> cmds) {
         super(null);
+        this.cmds = new LinkedList<>(cmds);
     }
     
     public CompositeCommand(Command ... cmds) {
-        this(new LinkedList<>(Arrays.asList(cmds)));
+        this(Arrays.asList(cmds));
     }
 
     @Override
@@ -51,6 +53,23 @@ public class CompositeCommand extends Command {
             @Override
             public void update(TimeStep timeStep) {
                 currentAction.update(timeStep);
+                if(!currentAction.status().inProgress()) {
+                    currentAction.end();
+                
+
+                    // if one of the commands fails, then
+                    // we fail the sequence
+                    if(currentAction.status().isFailure()) {
+                        cmds.clear();
+                    }
+                    
+                    if(!cmds.isEmpty()) {
+                        Command nextCommand = cmds.poll();
+                        command = nextCommand; 
+                        currentAction = nextCommand.createAction(scene);
+                        currentAction.start();
+                    }
+                }
             }
 
             @Override
@@ -60,20 +79,7 @@ public class CompositeCommand extends Command {
 
             @Override
             protected void doEnd() {
-                currentAction.doEnd();
-                
-                // if one of the commands fails, then
-                // we fail the sequence
-                if(currentAction.status().isFailure()) {
-                    cmds.clear();
-                }
-                
-                if(!cmds.isEmpty()) {
-                    Command nextCommand = cmds.poll();
-                    command = nextCommand; 
-                    currentAction = nextCommand.createAction(scene);
-                }
-                
+                currentAction.doEnd();                
             }
 
             @Override

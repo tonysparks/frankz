@@ -15,6 +15,7 @@ import colony.game.entities.Entity;
 import colony.game.screens.battle.Board.Slot;
 import colony.graph.AStarGraphSearch;
 import colony.graph.GraphNode;
+import colony.graph.GraphSearchPath;
 
 
 
@@ -27,41 +28,55 @@ import colony.graph.GraphNode;
  */
 public class PathPlanner {
     
+    public static enum SearchType {
+        AllSlots,
+        EmptySlots,
+    }
+    
     private BoardGraph graph;
     private List<GraphNode<Slot>> path;
-    private SearchPath searchPath;     
+    private EmptySlotSearchPath emptySlotSearchPath;
+    private AllSlotSearchPath allSlotSearchPath;
     private int currentNode;
     private Vector2 nextWaypoint;
     private Vector2 finalDestination;    
     private Entity entity;
     private BattleScene scene;
     
-    public class SearchPath extends AStarGraphSearch<Slot> {
-        public List<Slot> tilesToAvoid = new ArrayList<>();
+    
+    protected int heuristicEstimateDistanceImpl(
+            GraphNode<Slot> startNode,
+            GraphNode<Slot> currentNode,
+            GraphNode<Slot> goal) {
+        Slot startTile = startNode.getValue();
+        Slot currentTile = currentNode.getValue();
+        Slot goalTile = goal.getValue();
+                    
+        int dx = Math.abs(currentTile.x - goalTile.x);
+        int dy = Math.abs(currentTile.y - goalTile.y);                        
+        
+        int sdx = Math.abs(startTile.x - goalTile.x);
+        int sdy = Math.abs(startTile.y - goalTile.y);
+        
+        final int D = 1;
+        //final int D2 = 2;
+        
+        //distance = D * (dx+dy) + (D2 - 2 * D) * Math.min(dx, dy);
+        int distance = D * (dx+dy);
+        int cross = Math.abs(dx*sdy - sdx*dy);
+        return distance + (cross);//
+    }   
+    
+    
+    class EmptySlotSearchPath extends AStarGraphSearch<Slot> {
         
         @Override
         protected int heuristicEstimateDistance(
                 GraphNode<Slot> startNode,
                 GraphNode<Slot> currentNode,
                 GraphNode<Slot> goal) {
-            Slot startTile = startNode.getValue();
-            Slot currentTile = currentNode.getValue();
-            Slot goalTile = goal.getValue();
-                        
-            int dx = Math.abs(currentTile.x - goalTile.x);
-            int dy = Math.abs(currentTile.y - goalTile.y);                        
-            
-            int sdx = Math.abs(startTile.x - goalTile.x);
-            int sdy = Math.abs(startTile.y - goalTile.y);
-            
-            final int D = 1;
-            //final int D2 = 2;
-            
-            //distance = D * (dx+dy) + (D2 - 2 * D) * Math.min(dx, dy);
-            int distance = D * (dx+dy);
-            int cross = Math.abs(dx*sdy - sdx*dy);
-            return distance + (cross);//
-        }    
+            return heuristicEstimateDistanceImpl(startNode, currentNode, goal);
+        }
         
         
         @Override
@@ -69,6 +84,22 @@ public class PathPlanner {
             Slot slot = node.getValue();
             Optional<Entity> ent = scene.getEntityOnSlot(slot); 
             return ent.isPresent() && ent.get() != entity;
+        }
+    }
+    
+    class AllSlotSearchPath extends AStarGraphSearch<Slot> {
+        
+        @Override
+        protected int heuristicEstimateDistance(
+                GraphNode<Slot> startNode,
+                GraphNode<Slot> currentNode,
+                GraphNode<Slot> goal) {
+            return heuristicEstimateDistanceImpl(startNode, currentNode, goal);
+        }
+        
+        @Override
+        protected boolean shouldIgnore(GraphNode<Slot> node) {
+            return false;
         }
     }
     
@@ -87,7 +118,9 @@ public class PathPlanner {
         this.path = new ArrayList<GraphNode<Slot>>();
         
         this.currentNode = 0;        
-        this.searchPath = new SearchPath();            
+        
+        this.allSlotSearchPath = new AllSlotSearchPath();
+        this.emptySlotSearchPath = new EmptySlotSearchPath();
     } 
     
     private void setPath(List<GraphNode<Slot>> newPath) {
@@ -116,9 +149,10 @@ public class PathPlanner {
      * @param destination
      * @return the estimated actionPoints of moving from start to destination
      */
-    public int pathCost(Slot start, Slot destination) {
-        List<GraphNode<Slot>> newPath = this.graph.findPath(this.searchPath, start, destination);
-        int cost = newPath.size();
+    public int pathCost(SearchType searchType, Slot start, Slot destination) {
+        GraphSearchPath<Slot> searchPath = searchType==SearchType.EmptySlots ? this.emptySlotSearchPath : this.allSlotSearchPath;
+        List<GraphNode<Slot>> newPath = this.graph.findPath(searchPath, start, destination);        
+        int cost = (newPath!=null) ? newPath.size() : -1;
         return cost;
     }
     
@@ -128,8 +162,9 @@ public class PathPlanner {
      * @param start
      * @param destination
      */
-    public void findPath(Slot start, Slot destination) {                
-        List<GraphNode<Slot>> newPath = this.graph.findPath(this.searchPath, start, destination);
+    public void findPath(SearchType searchType, Slot start, Slot destination) {
+        GraphSearchPath<Slot> searchPath = searchType==SearchType.EmptySlots ? this.emptySlotSearchPath : this.allSlotSearchPath;
+        List<GraphNode<Slot>> newPath = this.graph.findPath(searchPath, start, destination);
         setPath(newPath);
         
         Vector3 worldPos = this.scene.getWorldPos(destination);

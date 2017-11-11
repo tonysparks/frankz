@@ -48,6 +48,69 @@
                 indexX: 0,
                 indexY: 3,
             },
+            
+            {
+                entityData: "./assets/entities/deaconate/blacktop/blacktop.json",
+                indexX: 0,
+                indexY: 4,
+            },
+            {
+                entityData: "./assets/entities/deaconate/chunk/chunk.json",
+                indexX: 0,
+                indexY: 5,
+            },
+            {
+                entityData: "./assets/entities/deaconate/frank/frank.json",
+                indexX: 0,
+                indexY: 6,
+            },
+            {
+                entityData: "./assets/entities/deaconate/squirt/squirt.json",
+                indexX: 0,
+                indexY: 7,
+            },
+            
+            {
+                entityData: "./assets/entities/deaconate/blacktop/blacktop.json",
+                indexX: 1,
+                indexY: 0,
+            },
+            {
+                entityData: "./assets/entities/deaconate/chunk/chunk.json",
+                indexX: 1,
+                indexY: 1,
+            },
+            {
+                entityData: "./assets/entities/deaconate/frank/frank.json",
+                indexX: 1,
+                indexY: 2,
+            },
+            {
+                entityData: "./assets/entities/deaconate/squirt/squirt.json",
+                indexX: 1,
+                indexY: 3,
+            },
+            
+            {
+                entityData: "./assets/entities/deaconate/blacktop/blacktop.json",
+                indexX: 1,
+                indexY: 4,
+            },
+            {
+                entityData: "./assets/entities/deaconate/chunk/chunk.json",
+                indexX: 1,
+                indexY: 5,
+            },
+            {
+                entityData: "./assets/entities/deaconate/frank/frank.json",
+                indexX: 1,
+                indexY: 6,
+            },
+            {
+                entityData: "./assets/entities/deaconate/squirt/squirt.json",
+                indexX: 1,
+                indexY: 7,
+            },
         ]
     },
     
@@ -68,6 +131,55 @@
                 entityData: "./assets/entities/pantheon/squirt/squirt.json",
                 indexX: 9,
                 indexY: 7,
+            },
+            {
+                entityData: "./assets/entities/pantheon/chunk/chunk.json",
+                indexX: 9,
+                indexY: 6,
+            },
+            {
+                entityData: "./assets/entities/pantheon/frank/frank.json",
+                indexX: 9,
+                indexY: 5,
+            },
+            {
+                entityData: "./assets/entities/pantheon/squirt/squirt.json",
+                indexX: 9,
+                indexY: 4,
+            },
+            
+            
+            
+            
+            {
+                entityData: "./assets/entities/pantheon/chunk/chunk.json",
+                indexX: 8,
+                indexY: 9,
+            },
+            {
+                entityData: "./assets/entities/pantheon/frank/frank.json",
+                indexX: 8,
+                indexY: 8,
+            },
+            {
+                entityData: "./assets/entities/pantheon/squirt/squirt.json",
+                indexX: 8,
+                indexY: 7,
+            },
+            {
+                entityData: "./assets/entities/pantheon/chunk/chunk.json",
+                indexX: 8,
+                indexY: 6,
+            },
+            {
+                entityData: "./assets/entities/pantheon/frank/frank.json",
+                indexX: 8,
+                indexY: 5,
+            },
+            {
+                entityData: "./assets/entities/pantheon/squirt/squirt.json",
+                indexX: 8,
+                indexY: 4,
             },
         ]
     }

@@ -14,6 +14,7 @@ import colony.game.entities.EntityState;
 import colony.game.screens.battle.BattleScene;
 import colony.game.screens.battle.Board.Slot;
 import colony.game.screens.battle.PathPlanner;
+import colony.game.screens.battle.PathPlanner.SearchType;
 import colony.gfx.RenderContext;
 import colony.graph.GraphNode;
 
@@ -55,12 +56,12 @@ public class MoveToCommand extends Command {
         
         this.pathPlanner = scene.newPathPlanner(entity);
         
-        int cost = this.pathPlanner.pathCost(start, end) * data.actionPoints;
+        int cost = this.pathPlanner.pathCost(SearchType.EmptySlots, start, end) * data.actionPoints;
         if(!entity.hasPoints(cost)) {
             return failed("Not enough action points");
         }
         
-        this.pathPlanner.findPath(start, end);
+        this.pathPlanner.findPath(SearchType.EmptySlots, start, end);
         if(!this.pathPlanner.hasPath()) {
             return failed("No valid path to target slot");
         }

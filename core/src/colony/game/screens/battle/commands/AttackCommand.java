@@ -49,11 +49,13 @@ public class AttackCommand extends Command {
             
             Dice dice = scene.getDice();
                             
-            int defenseScore = dice.d10() + parameters.targetEntity.calculateDefense(scene);
+            int defenseScore = dice.d10() + (parameters.targetEntity!=null ? parameters.targetEntity.calculateDefense(scene) : 0);
             int offenseScore = dice.d10() + parameters.selectedEntity.calculateOffense(scene);
             
             if(offenseScore > defenseScore) {
-                parameters.targetEntity.damage(parameters.selectedEntity.getAttackData().damage);
+                if(parameters.targetEntity!=null) {
+                    parameters.targetEntity.damage(parameters.selectedEntity.getAttackData().damage);
+                }
                 
                 onHit();
             }
@@ -114,6 +116,26 @@ public class AttackCommand extends Command {
             return failed("Not enough action points");
         }
         
+        CommandResult result = checkTarget(scene, entity, data);
+        if(!result.inProgress()) {
+            return result;
+        }
+                
+        entity.usePoints(data.actionPoints);
+        
+        return inProgress();
+    }
+    
+    
+    /**
+     * checks the target is valid
+     * 
+     * @param scene
+     * @param entity
+     * @param data
+     * @return
+     */
+    protected CommandResult checkTarget(BattleScene scene, Entity entity, AttackData data) {
         if(parameters.targetEntity == null) {
             return failed("No target entity");
         }
@@ -129,8 +151,6 @@ public class AttackCommand extends Command {
         if(entity.distance(parameters.targetEntity) > data.attackRange) {
             return failed("Target is out of reach");
         }
-                
-        entity.usePoints(data.actionPoints);
         
         return inProgress();
     }

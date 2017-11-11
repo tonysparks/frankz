@@ -5,15 +5,17 @@ package colony.game.screens.battle;
 
 import java.util.Optional;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 
 import colony.game.entities.Entity;
+import colony.game.entities.EntityData.AttackData;
 import colony.game.screens.battle.Board.Slot;
 
 /**
@@ -45,7 +47,18 @@ public class BattleScreenInputProcessor implements InputProcessor {
     
     @Override
     public boolean keyDown(int keycode) {
-        // TODO Auto-generated method stub
+        if(keycode == Keys.CONTROL_LEFT) {
+            BattleScene scene = this.screen.getBattleScene();
+            if(scene.hasSelectedEntity()) {
+                Entity ent = scene.getSelectedEntity();
+                AttackData attack = ent.getAttackData();
+                if(attack.hasSplitAttack()) {
+                    Vector2 pos = ent.getPos();
+                    scene.setHighlighter(pos.x, pos.y, attack.splitRange, Color.SCARLET);
+                }
+            }
+        }
+        
         return false;
     }
 
@@ -79,16 +92,28 @@ public class BattleScreenInputProcessor implements InputProcessor {
             if(scene.hasSelectedEntity()) {
                 Optional<Entity> ent = scene.getEntity(pos.x, pos.y);
                 
-                if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT) && scene.getSelectedEntity().getAttackData().hasTossAttack()) {
-                    if(scene.hasSecondSelectedEntity() /*&& !ent.isPresent()*/) {
-                        Slot slot = scene.getSlot(pos.x, pos.y);
-                        if(slot!=null) {
-                            scene.issueTossCommand(slot);
+                if(Gdx.input.isKeyPressed(Keys.CONTROL_LEFT)) {
+                    
+                    AttackData attack = scene.getSelectedEntity().getAttackData();
+                    
+                    if(attack.hasTossAttack()) {
+                    
+                        if(scene.hasSecondSelectedEntity() /*&& !ent.isPresent()*/) {
+                            Slot slot = scene.getSlot(pos.x, pos.y);
+                            if(slot!=null) {
+                                scene.issueTossCommand(slot);
+                            }
+                        }
+                        else {
+                            scene.setHighlighter(pos.x, pos.y, attack.tossRange, Color.SCARLET);
+                            scene.selectSecondEntity(ent);
                         }
                     }
-                    else {
-                        scene.setHighlighter(pos.x, pos.y, scene.getSelectedEntity().getAttackData().tossRange, Color.SCARLET);
-                        scene.selectSecondEntity(ent);
+                    else if(attack.hasSplitAttack()) {
+                        Slot slot = scene.getSlot(pos.x, pos.y);
+                        if(slot!=null) {
+                            scene.issueSplitCommand(slot);
+                        }
                     }
                 }
                 else {

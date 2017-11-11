@@ -16,9 +16,14 @@ public class EntityData {
         public int damage=1;
         
         public int tossRange=-1;
+        public int splitRange=-1;
         
         public boolean hasTossAttack() {
             return tossRange > 0;
+        }
+        
+        public boolean hasSplitAttack() {
+            return splitRange > 0;
         }
     }
     

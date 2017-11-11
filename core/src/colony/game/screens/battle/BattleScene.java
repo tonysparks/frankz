@@ -25,6 +25,7 @@ import colony.game.screens.battle.commands.Command;
 import colony.game.screens.battle.commands.CommandParameters;
 import colony.game.screens.battle.commands.CommandQueue;
 import colony.game.screens.battle.commands.MoveToCommand;
+import colony.game.screens.battle.commands.SplitCommand;
 import colony.game.screens.battle.commands.TossCommand;
 import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
@@ -635,6 +636,15 @@ public class BattleScene implements Renderable {
             this.secondSelectedEntity = null;
         }
     }
+    
+    
+    public void issueSplitCommand(Slot targetSlot) {
+        if(isSelectedEntityCommandable()) {
+            this.commandQueue.addCommand(new SplitCommand(new CommandParameters(this.selectedEntity, targetSlot)));
+            this.highlighter.clear();                        
+        }
+    }
+    
     
     private Optional<Entity> findEntity(float worldX, float worldY) {
         Optional<Entity> ent = findEntity(this.attacker.getEntities(), worldX, worldY);
