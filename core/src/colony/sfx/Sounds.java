@@ -24,6 +24,10 @@ public class Sounds {
     public static final int[] uiSlotHover  = {0};
     public static final int[] uiSlotSelect = {1};
     
+    public static final int[] hit = {2,3,4};
+    public static final int[] melee = {5,6};
+   // public static final int[] hitMissed = {3};
+    
     
     private static final List<WatchedAsset<Sound>> soundBank = new ArrayList<>();
     private static float gameVolume;
@@ -41,6 +45,13 @@ public class Sounds {
         
         soundBank.add(game.loadSound("./assets/sfx/ui/element_hover.wav"));
         soundBank.add(game.loadSound("./assets/sfx/ui/element_select.wav"));
+        
+        soundBank.add(game.loadSound("./assets/sfx/franks/hit1.wav"));
+        soundBank.add(game.loadSound("./assets/sfx/franks/hit2.wav"));
+        soundBank.add(game.loadSound("./assets/sfx/franks/hit3.wav"));
+        
+        soundBank.add(game.loadSound("./assets/sfx/franks/melee_swing01.wav"));
+        soundBank.add(game.loadSound("./assets/sfx/franks/melee_swing02.wav"));
         
     }
     

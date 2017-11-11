@@ -5,6 +5,7 @@ package colony.game.entities;
 
 import java.util.Optional;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
@@ -20,8 +21,12 @@ import colony.game.screens.battle.BattleScene;
 import colony.game.screens.battle.Board.Slot;
 import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
+import colony.gfx.effects.Effects;
+import colony.gfx.effects.FlickerEffect;
 import colony.graph.Edge;
 import colony.graph.GraphNode;
+import colony.sfx.Sounds;
+import colony.util.Timer;
 
 /**
  * 
@@ -77,6 +82,9 @@ public class Entity implements Updatable, PositionableRenderable {
     private int health;
     private Faction faction;
     
+    private Effects effects;
+    private Timer dyingTimer;
+    
     public Entity() {
         this.pos = new Vector2();
         this.centerPos = new Vector2();
@@ -85,6 +93,10 @@ public class Entity implements Updatable, PositionableRenderable {
         this.bounds = new Rectangle();
         
         this.actionMeter = new ActionMeter(0);
+        
+        this.effects = new Effects();
+        this.dyingTimer = new Timer(false, 2_000);
+        this.dyingTimer.stop();
         
         this.state = EntityState.Idle;
     }
@@ -159,6 +171,16 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     /**
+     * Heal this entity to their heal factor
+     */
+    public void heal() {
+        this.health += this.stats.healFactor;
+        if(this.health > this.stats.maxHealth) {
+            this.health = this.stats.maxHealth;
+        }
+    }
+    
+    /**
      * Damage this entity
      * 
      * @param amount
@@ -166,8 +188,15 @@ public class Entity implements Updatable, PositionableRenderable {
     public void damage(int amount) {
         if(isAlive()) {
             this.health -= amount;
+            
+            Sounds.playSound(Sounds.hit);
+            this.effects.addEffect(new FlickerEffect(this.model.getSprite(), Color.WHITE, Color.RED, 500, 80));
+            
             if(this.health < 1) {
-                this.state = EntityState.Dead;
+                this.dyingTimer.start();                
+            
+                this.effects.addEffect(new FlickerEffect(this.model.getSprite(), Color.BLACK, Color.RED, this.dyingTimer.getEndTime(), 200));
+                this.state = EntityState.Dying;
             }
         }
     }
@@ -243,7 +272,7 @@ public class Entity implements Updatable, PositionableRenderable {
                 if(ent.isPresent()) {
                     Entity neighborEntity = ent.get();
                     if(isEnemy(neighborEntity)) {
-                        score -= 10;
+                        score -= 0;
                     }
                     else {
                         score += neighborEntity.stats.defenseNeighborFactor;
@@ -260,6 +289,7 @@ public class Entity implements Updatable, PositionableRenderable {
      */
     public void endTurn() {
         actionMeter.reset();
+        heal();
     }
     
     /**
@@ -372,13 +402,20 @@ public class Entity implements Updatable, PositionableRenderable {
 
     @Override
     public void update(TimeStep timeStep) {
+        this.dyingTimer.update(timeStep);
+        if(this.dyingTimer.isOnFirstTime()) {
+            this.state = EntityState.Dead;
+        }
+        
         this.model.update(timeStep);
+        this.effects.update(timeStep);
     }
     
     @Override
-    public void render(RenderContext context) {        
+    public void render(RenderContext context) {
         this.model.render(context);    
-        
+
+        this.effects.render(context);
         
 //        context.batch.end();
 //        context.drawRect(bounds.x, bounds.y, bounds.width, bounds.height, Color.GOLD);

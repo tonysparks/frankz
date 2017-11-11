@@ -42,7 +42,7 @@ public class EntityModel implements Renderable {
     
     private Entity entity;    
     private Sprite sprite;
-    
+        
     /**
      * @param entity
      */
@@ -50,6 +50,13 @@ public class EntityModel implements Renderable {
         this.entity = entity;
         this.sprite = new Sprite();
         
+    }
+    
+    /**
+     * @return the sprite
+     */
+    public Sprite getSprite() {
+        return sprite;
     }
 
     @Override

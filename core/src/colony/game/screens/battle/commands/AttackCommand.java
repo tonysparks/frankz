@@ -10,6 +10,7 @@ import colony.game.entities.EntityState;
 import colony.game.screens.battle.BattleScene;
 import colony.game.screens.battle.Dice;
 import colony.gfx.RenderContext;
+import colony.sfx.Sounds;
 import colony.util.Timer;
 
 /**
@@ -44,7 +45,9 @@ public class AttackCommand extends Command {
         }
 
         @Override
-        protected void doStart() {            
+        protected void doStart() {        
+            Sounds.playSound(Sounds.melee);
+            
             parameters.selectedEntity.setState(EntityState.Attacking);
             
             Dice dice = scene.getDice();

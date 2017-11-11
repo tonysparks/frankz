@@ -43,6 +43,8 @@ public class Faction implements Updatable {
     public void update(TimeStep timeStep) {
         for(int i = 0; i < this.entities.size();) {
             Entity ent = this.entities.get(i);
+            ent.update(timeStep);
+            
             if(ent.isAlive()) {
                 i++;
             }

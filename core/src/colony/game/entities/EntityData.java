@@ -35,6 +35,7 @@ public class EntityData {
         public int startingActionPoints=3;
         public int maxHealth=5;
         public int startingHealth=3;
+        public int healFactor=startingHealth;
         
         public int defenseFactor = 10;
         public int defenseNeighborFactor = 15;
