@@ -209,27 +209,27 @@ public class AStarGraphSearch<E> implements GraphSearchPath<E> {
                 
                 Directions dir = Directions.fromIndex(i);
                 if(shouldIgnore(y)) {
-                    if(Directions.isCardinal(i)) {
-                        switch(dir) {
-                            case N:
-                                skipMask |= Directions.NE.getMask();
-                                skipMask |= Directions.NW.getMask();
-                                break;
-                            case E:
-                                skipMask |= Directions.NE.getMask();
-                                skipMask |= Directions.SE.getMask();
-                                break;
-                            case S:
-                                skipMask |= Directions.SE.getMask();
-                                skipMask |= Directions.SW.getMask();
-                                break;
-                            case W:                                
-                                skipMask |= Directions.NW.getMask();
-                                skipMask |= Directions.SW.getMask();
-                                break;
-                            default:
-                        }
-                    }
+//                    if(Directions.isCardinal(i)) {
+//                        switch(dir) {
+//                            case N:
+//                                skipMask |= Directions.NE.getMask();
+//                                skipMask |= Directions.NW.getMask();
+//                                break;
+//                            case E:
+//                                skipMask |= Directions.NE.getMask();
+//                                skipMask |= Directions.SE.getMask();
+//                                break;
+//                            case S:
+//                                skipMask |= Directions.SE.getMask();
+//                                skipMask |= Directions.SW.getMask();
+//                                break;
+//                            case W:                                
+//                                skipMask |= Directions.NW.getMask();
+//                                skipMask |= Directions.SW.getMask();
+//                                break;
+//                            default:
+//                        }
+//                    }
                     continue;
                 }
                 

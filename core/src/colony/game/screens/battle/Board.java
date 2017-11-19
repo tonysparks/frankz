@@ -70,6 +70,24 @@ public class Board {
     }
     
     /**
+     * Width in number of slots
+     * 
+     * @return Width in number of slots
+     */
+    public int getWidth() {
+        return WIDTH;
+    }
+    
+    /**
+     * Height in number of slots
+     * 
+     * @return Height in number of slots
+     */
+    public int getHeight() {
+        return HEIGHT;
+    }
+    
+    /**
      * Scan each slot
      * 
      * @param c

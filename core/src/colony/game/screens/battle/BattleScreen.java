@@ -138,23 +138,20 @@ public class BattleScreen implements Screen {
     public void render(RenderContext context) {
         this.camera.update();
                 
-        context.setProjectionTransform(this.camera.combined, this.transform);
-        
-        //float effectiveViewportWidth = camera.viewportWidth;// * camera.zoom;
-        //float effectiveViewportHeight = camera.viewportHeight;// * camera.zoom;
-        //context.fillRect(0, 0, effectiveViewportWidth, effectiveViewportHeight, Color.valueOf("6B8E23"));
-        
+        context.setProjectionTransform(this.camera.combined, this.transform);                
         context.batch.begin();       
-        
-        this.battleScene.render(context);
-        
+        {
+            this.battleScene.render(context);
+        }
         context.batch.end();
 
-        context.setProjectionTransform(this.hudCamera.combined, this.transform);
-        
+        context.setProjectionTransform(this.hudCamera.combined, this.transform);        
         context.batch.begin();
-        this.hud.render(context);
+        {
+            this.hud.render(context);
+        }
         context.batch.end();
+        
         
         this.stage.draw();
     }

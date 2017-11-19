@@ -20,6 +20,7 @@ import colony.game.entities.Entity;
 import colony.game.screens.battle.BattleSceneData.EntityRefData;
 import colony.game.screens.battle.BattleSceneData.SceneObject;
 import colony.game.screens.battle.Board.Slot;
+import colony.game.screens.battle.ai.AI;
 import colony.game.screens.battle.commands.AttackCommand;
 import colony.game.screens.battle.commands.Command;
 import colony.game.screens.battle.commands.CommandParameters;
@@ -58,6 +59,7 @@ public class BattleScene implements Renderable {
         scene.camera = camera;
         scene.dispatcher = game.getDispatcher();
         scene.highlighter = new SlotHighlighter(game, scene);
+        scene.ai = new AI(scene, scene.currentTurn.getFactionsTurn());
         
         game.loadAsset(battleSceneFile, BattleSceneData.class).onAssetChanged(data -> {
             
@@ -80,15 +82,14 @@ public class BattleScene implements Renderable {
                 scene.tileHighlighter = new Sprite();
             }
             
-            for(int i = 0; i < scene.slotImages.length; i++) {
-                Sprite sprite = new Sprite();
-                scene.slotImages[i] = sprite; 
-                game.loadTexture(data.slotImage).onAssetChanged(tex -> {
-                   sprite.setRegion(tex);
-                   //sprite.setSize(Board.Slot.WIDTH, Board.Slot.HEIGHT/2.0f);
-                   sprite.setSize(tileSpriteWidth, tileSpriteHeight);                  
-                }).touch();
-            }
+            
+            scene.slotImage = new Sprite(); 
+            game.loadTexture(data.slotImage).onAssetChanged(tex -> {
+                scene.slotImage.setRegion(tex);
+               //sprite.setSize(Board.Slot.WIDTH, Board.Slot.HEIGHT/2.0f);
+                scene.slotImage.setSize(tileSpriteWidth, tileSpriteHeight);                  
+            }).touch();
+            
 
             scene.sceneObjectSprites.clear();
             for(int i = 0; i < data.objects.length; i++) {
@@ -140,8 +141,10 @@ public class BattleScene implements Renderable {
     }
            
 
+    private AI ai;
+    
     private Sprite backgroundSprite;
-    private Sprite[] slotImages;
+    private Sprite slotImage;
     private Sprite tileHighlighter;
     
     private List<PositionableRenderable> sceneObjectSprites;
@@ -193,7 +196,7 @@ public class BattleScene implements Renderable {
         
         this.renderables = new ArrayList<>();
         
-        this.slotImages = new Sprite[Board.HEIGHT * Board.WIDTH];
+        this.slotImage = new Sprite();
         
         this.board = new Board();
         this.worldPos = new Vector3();
@@ -203,7 +206,7 @@ public class BattleScene implements Renderable {
         
         this.highlightTimer = new Timer(true, 33);
         
-        this.graph = new BoardGraph(board);   
+        this.graph = new BoardGraph(this, board);   
         
         this.attacker = new Faction("<undefined>");
         this.defender = new Faction("<undefined>");
@@ -211,12 +214,13 @@ public class BattleScene implements Renderable {
         this.commandQueue = new CommandQueue(this);
         this.currentTurn = new Turn(0, this.attacker);
         
-        this.dice = new Dice();
+        this.dice = new Dice();        
     }
     
     
     @Override
     public void update(TimeStep timeStep) {
+        this.ai.update(timeStep);
         this.commandQueue.update(timeStep);
         this.dispatcher.processQueue();
         
@@ -247,9 +251,9 @@ public class BattleScene implements Renderable {
         this.board.forEachSlot( slot -> {                        
             Vector3 worldPos = getWorldPos(slot);
 
-            Sprite sprite = slotImages[this.index++];
-            sprite.setPosition(worldPos.x - tileHalfWidth, worldPos.y - tileHalfHeight);
-            sprite.draw(context.batch);
+            //Sprite sprite = slotImages[this.index++];
+            this.slotImage.setPosition(worldPos.x - tileHalfWidth, worldPos.y - tileHalfHeight);
+            this.slotImage.draw(context.batch);
             
             
             /*
@@ -302,7 +306,6 @@ public class BattleScene implements Renderable {
         }
         
         this.commandQueue.render(context);
-
     }
     
     /**
@@ -324,6 +327,27 @@ public class BattleScene implements Renderable {
         
         this.currentTurn = newTurn;
         return true;
+    }
+    
+    /**
+     * @return the dispatcher
+     */
+    public EventDispatcher getDispatcher() {
+        return dispatcher;
+    }
+    
+    /**
+     * @return the ai
+     */
+    public AI getAI() {
+        return ai;
+    }
+    
+    /**
+     * @return the board
+     */
+    public Board getBoard() {
+        return board;
     }
     
     /**

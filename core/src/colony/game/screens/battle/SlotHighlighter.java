@@ -4,7 +4,6 @@
 package colony.game.screens.battle;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -174,8 +173,15 @@ public class SlotHighlighter implements Renderable {
         this.color = color;
         
         GraphNode<Slot> node = this.graph.getNode(slot);
-        Set<GraphNode<Slot>> slots = getMoveableNodes(node, all, range);
+        Set<GraphNode<Slot>> slots = this.graph.getNodesInRadius(node, all, range);                 
         for(GraphNode<Slot> n : slots) {
+            
+            // TODO account for rounding errors, ignore any slots
+            // that fall out of our range
+//            if(ai.distance(scene, slot) > attack.attackRange) {
+//                continue;
+//            }
+            
             //this.highlightedSlots.add(new HighlightedSlot(n.getValue(), this.bottomLeft));
             
             if(!isCenter(slots, n)) {
@@ -420,35 +426,7 @@ public class SlotHighlighter implements Renderable {
                 hasEdge(slots, edges, Directions.E) &&
                 hasEdge(slots, edges, Directions.S);
     }
-    
-    private Set<GraphNode<Slot>> getMoveableNodes(GraphNode<Slot> node, boolean all, int range) {
-        Set<GraphNode<Slot>> results = new HashSet<>();
         
-        gatherMoveableNodes(node, results, all, range);
-        return results;
-    }
-    
-    private void gatherMoveableNodes(GraphNode<Slot> currentNode, Set<GraphNode<Slot>> results, boolean all, int range) {
-        if(range < 0) {
-            return;
-        }
-        
-        Slot slot = currentNode.getValue();
-        if(all || this.scene.isWalkable(slot)) {
-            results.add(currentNode);
-        }
-        
-        Edges<Slot> edges = currentNode.edges();
-        for(int i = 0; i < edges.size(); i++) {
-            Edge<Slot> e = edges.get(i);
-            if(e!=null) {
-                GraphNode<Slot> other = e.getRight();
-                
-                gatherMoveableNodes(other, results, all, range-1);
-            }
-        }
-    }
-    
     
     @Override
     public void update(TimeStep timeStep) {

@@ -19,8 +19,10 @@ import colony.game.entities.EntityData.MovementData;
 import colony.game.entities.EntityData.StatData;
 import colony.game.screens.battle.BattleScene;
 import colony.game.screens.battle.Board.Slot;
+import colony.game.screens.battle.PathPlanner.SearchType;
 import colony.gfx.PositionableRenderable;
 import colony.gfx.RenderContext;
+import colony.gfx.effects.Effect;
 import colony.gfx.effects.Effects;
 import colony.gfx.effects.FlickerEffect;
 import colony.graph.Edge;
@@ -126,13 +128,23 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     /**
+     * If this Entity is in the supplied {@link Faction}
+     * 
+     * @param f
+     * @return true if this entity is in the supplied faction
+     */
+    public boolean inFaction(Faction f) {
+        return f.equals(this.faction);
+    }
+    
+    /**
      * If these two {@link Entity}s are enemies
      * 
      * @param ent
      * @return true if enemies
      */
     public boolean isEnemy(Entity ent) {
-        return !ent.getFaction().getName().equals(this.faction.getName());
+        return !ent.getFaction().equals(this.faction);
     }
     
     /**
@@ -142,9 +154,15 @@ public class Entity implements Updatable, PositionableRenderable {
      * @param ent
      * @return the distance in number of slots
      */
-    public int distance(Entity ent) {
-        float distance = this.pos.dst(ent.pos);
-        return Math.round(distance / Slot.WIDTH);
+    public int distance(BattleScene scene, Entity ent) {
+        return distance(scene, scene.getSlot(ent));        
+    }
+    
+    public int distance(BattleScene scene, Slot slot) {
+        return scene.newPathPlanner(this).pathCost(SearchType.AllSlots, scene.getSlot(this), slot);
+        
+//        float distance = this.pos.dst(ent.pos);
+//        return Math.round(distance / Slot.WIDTH);
     }
     
     /**
@@ -180,6 +198,14 @@ public class Entity implements Updatable, PositionableRenderable {
         }
     }
     
+    public void addFlickerEffect(Color start, Color end, long timeToLive, long flickerTime) {
+        addEffect(new FlickerEffect(this.model.getSprite(), start, end, timeToLive, flickerTime));
+    }
+    
+    public void addEffect(Effect effect) {
+        this.effects.addEffect(effect);
+    }
+    
     /**
      * Damage this entity
      * 
@@ -190,12 +216,12 @@ public class Entity implements Updatable, PositionableRenderable {
             this.health -= amount;
             
             Sounds.playSound(Sounds.hit);
-            this.effects.addEffect(new FlickerEffect(this.model.getSprite(), Color.WHITE, Color.RED, 500, 80));
-            
+            addFlickerEffect(Color.WHITE, Color.RED, 500, 80);
+                        
             if(this.health < 1) {
                 this.dyingTimer.start();                
             
-                this.effects.addEffect(new FlickerEffect(this.model.getSprite(), Color.BLACK, Color.RED, this.dyingTimer.getEndTime(), 200));
+                addFlickerEffect(Color.BLACK, Color.RED, this.dyingTimer.getEndTime(), 200);                    
                 this.state = EntityState.Dying;
             }
         }
@@ -254,16 +280,26 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     /**
-     * Calculates the defense score
+     * Calculates the defense score at this {@link Entity}s current {@link Slot}
      * 
      * @param scene
      * @return the defense score
      */
-    public int calculateDefense(BattleScene scene) {
+    public int calculateDefense(BattleScene scene) {        
+        return calculateDefense(scene.getSlot(this), scene);
+    }
+    
+    /**
+     * Calculates the defense score if this {@link Entity} was at the desired {@link Slot}
+     * 
+     * @param scene
+     * @return the defense score
+     */
+    public int calculateDefense(Slot desiredSlot, BattleScene scene) {
         int score = stats.defenseFactor;
         
         // Calculate Neighbor bonus
-        GraphNode<Slot> node = scene.getGraph().getNode(scene.getSlot(this));
+        GraphNode<Slot> node = scene.getGraph().getNode(desiredSlot);
         for(int i = 0; i < node.edges().size(); i++) {
             Edge<Slot> edge = node.edges().get(i);
             if(edge!=null) {
@@ -322,6 +358,13 @@ public class Entity implements Updatable, PositionableRenderable {
      */
     public EntityState getState() {
         return state;
+    }
+    
+    /**
+     * @return the model
+     */
+    public EntityModel getModel() {
+        return model;
     }
     
     /**

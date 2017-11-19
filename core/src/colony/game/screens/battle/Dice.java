@@ -36,4 +36,39 @@ public class Dice {
     public int rand(int min, int max) {
         return min + this.rand.nextInt(max - min);
     }
+    
+    /**
+     * @param percentage the percentage of the chance being true. Range 0 to 1.0
+     * @return randomly returns true or false; the frequency is of which is
+     * influenced by the supplied percentage.  A 0% will always return false,
+     * and a 100% chance will always return true;
+     */
+    public boolean chances(double percentage) {
+        return rand.nextDouble() < percentage;
+    }
+    
+    public double getRandomRange(double min, double max) {
+        return getRandomRange(this.rand, min, max);
+    }    
+    
+    public double getRandomRangeMin(double min) {
+        return getRandomRangeMin(this.rand, min);
+    }
+    
+    public double getRandomRangeMax(double max) {
+        return getRandomRangeMax(this.rand, max);
+    }
+    
+    
+    public static double getRandomRange(Random random, double min, double max) {
+        return min + (random.nextDouble() * (max - min));
+    }    
+    
+    public static double getRandomRangeMin(Random random, double min) {
+        return getRandomRange(random, min, 1.0);
+    }
+    
+    public static double getRandomRangeMax(Random random, double max) {
+        return getRandomRange(random, 0.0, max);
+    }
 }

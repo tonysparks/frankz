@@ -14,6 +14,8 @@ import colony.game.Logger;
 import colony.game.TimeStep;
 import colony.game.entities.ActionMeter;
 import colony.game.entities.Entity;
+import colony.game.screens.battle.ai.AI;
+import colony.game.screens.battle.ai.InfluenceMap.Influence;
 import colony.gfx.RenderContext;
 import colony.gfx.Renderable;
 
@@ -104,6 +106,29 @@ public class Hud implements Renderable {
         context.setFont("Consola", 28);
         renderEntityInfo(this.scene.getAttacker().getEntities(), context);
         renderEntityInfo(this.scene.getDefender().getEntities(), context);
+        
+        
+      //  renderAI(context, scene.getAI());
+    }
+    
+    private void renderAI(RenderContext context, AI ai) {
+        Influence[][] influences = ai.getInfluenceMap().getInfluences();
+        
+        
+        setFont("Consola", 12);
+        for(int y = 0; y < influences.length; y++) {
+            for(int x = 0; x < influences[y].length; x++) {
+                Vector3 worldPos = scene.getWorldPos(x, y);
+                                
+                Vector3 screenPos = camera.project(worldPos);
+                screenPos.y = Gdx.graphics.getHeight() - screenPos.y;
+                
+                drawString(String.format("I: %3.2f", influences[y][x].influence), screenPos.x, screenPos.y, Color.RED);
+                drawString(String.format("T: %3.2f", influences[y][x].tension), screenPos.x, screenPos.y+10, Color.RED);
+                drawString(String.format("V: %3.2f", influences[y][x].vulnerability), screenPos.x, screenPos.y+20, Color.RED);
+            }
+        }
+        
     }
 
     private void renderEntityInfo(List<Entity> entities, RenderContext context) {

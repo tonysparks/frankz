@@ -3,6 +3,8 @@
  */
 package colony.game.screens.battle.commands;
 
+import com.badlogic.gdx.graphics.Color;
+
 import colony.game.TimeStep;
 import colony.game.entities.Entity;
 import colony.game.entities.EntityData.AttackData;
@@ -22,12 +24,14 @@ public class AttackCommand extends Command {
     public class AttackAction extends Action {
         protected Timer timer;
         protected BattleScene scene;
-        
+                
         public AttackAction(AttackCommand cmd, BattleScene scene) {
             super(cmd);
             
             this.scene = scene;            
             this.timer = new Timer(false, 1_500);
+
+            parameters.selectedEntity.addFlickerEffect(Color.WHITE, Color.GREEN, timer.getEndTime(), 200);
         }
         
         protected CommandParameters parameters() {
@@ -41,7 +45,7 @@ public class AttackCommand extends Command {
 
         @Override
         public void update(TimeStep timeStep) {
-            this.timer.update(timeStep);
+            this.timer.update(timeStep);            
         }
 
         @Override
@@ -151,7 +155,7 @@ public class AttackCommand extends Command {
             return failed("Target is not an enemy");
         }
         
-        if(entity.distance(parameters.targetEntity) > data.attackRange) {
+        if(entity.distance(scene, parameters.targetEntity) > data.attackRange) {
             return failed("Target is out of reach");
         }
         
