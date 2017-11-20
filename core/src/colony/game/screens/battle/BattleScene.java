@@ -175,7 +175,9 @@ public class BattleScene implements Renderable {
     
     private List<PositionableRenderable> renderables;
     
-    private Entity selectedEntity, secondSelectedEntity;
+    private Entity selectedEntity, 
+                   secondSelectedEntity,
+                   hoveredOverEntity;
     private Slot selectedSlot;
         
     private BoardGraph graph;
@@ -240,6 +242,23 @@ public class BattleScene implements Renderable {
         this.renderables.addAll(this.sceneObjectSprites);
         
         this.renderables.sort( (a,b) -> (int)a.getY() - (int)b.getY());
+        
+        boolean selectAll = !hasSelectedEntity() && this.hoveredOverEntity==null;
+        
+        this.attacker.getEntities().forEach(ent -> ent.setSelected(selectAll));
+        this.defender.getEntities().forEach(ent -> ent.setSelected(selectAll));            
+        
+        if(this.selectedEntity != null) {
+            this.selectedEntity.setSelected(true);
+        }
+        if(this.secondSelectedEntity!=null) {
+            this.secondSelectedEntity.setSelected(true);
+        }                        
+        
+        
+        if(this.hoveredOverEntity!=null) {
+            this.hoveredOverEntity.setSelected(true);
+        }
     }
     
     @Override
@@ -472,6 +491,43 @@ public class BattleScene implements Renderable {
         }
     }
     
+    
+    /**
+     * The mouse is hovering over the game board
+     * 
+     * @param worldX
+     * @param worldY
+     */
+    public void hoverOverPos(float worldX, float worldY) {
+        setHighlightedSlot(worldX, worldY);
+        if( this.hoveredOverEntity != null && 
+           (this.hoveredOverEntity!=this.selectedEntity&&this.hoveredOverEntity!=this.secondSelectedEntity)) {
+            this.hoveredOverEntity.setSelected(false);
+        }
+        
+        Optional<Entity> optEnt = Optional.empty();
+        this.hoveredOverEntity = null;
+        
+        /**
+         * If there is already a selected entity, we are 
+         * hovering over a Slot and not an Entity
+         */
+        if(hasSelectedEntity()||hasSecondSelectedEntity()) {
+            Slot slot = getSlot(worldX, worldY);
+            if(slot != null) {
+                optEnt = getEntityOnSlot(slot);
+            }
+        }
+        else {        
+            optEnt = getEntity(worldX, worldY);
+        }
+        
+        optEnt.ifPresent(ent -> {
+            this.hoveredOverEntity = ent;
+            this.hoveredOverEntity.setSelected(true);
+        });
+    }
+    
     /**
      * @return the tileHighlighter
      */
@@ -553,14 +609,18 @@ public class BattleScene implements Renderable {
      * @param ent the second selected entity
      */
     public void selectSecondEntity(Optional<Entity> ent) {
+        if(this.secondSelectedEntity != null) {
+            this.secondSelectedEntity.setSelected(false);
+        }
         
         if(ent.isPresent()) {
             this.secondSelectedEntity = ent.get();
-                        
+            this.secondSelectedEntity.setSelected(true);    
+            
             Sounds.playSound(Sounds.uiSlotSelect);
         }
         else {           
-            if(this.secondSelectedEntity != null) {
+            if(this.secondSelectedEntity != null) {         
                 Sounds.playSound(Sounds.uiSlotSelect);
             }
             
@@ -577,10 +637,16 @@ public class BattleScene implements Renderable {
      * @param worldY
      */
     public void selectEntity(float worldX, float worldY) {
+        if(this.selectedEntity != null) {
+            this.selectedEntity.setSelected(false);
+        }
+        
         Optional<Entity> ent = getEntity(worldX, worldY);
         
         if(ent.isPresent()) {
             this.selectedEntity = ent.get();
+            this.selectedEntity.setSelected(true);
+            
             this.highlighter.centerAround(this.getSlot(selectedEntity), this.selectedEntity.getCurrentMovementRange(), Color.WHITE);
             
             Sounds.playSound(Sounds.uiSlotSelect);
@@ -589,7 +655,13 @@ public class BattleScene implements Renderable {
             this.highlighter.clear();
             
             if(this.selectedEntity != null) {
+                this.selectedEntity.setSelected(false);
+                
                 Sounds.playSound(Sounds.uiSlotSelect);
+            }
+            
+            if(this.secondSelectedEntity != null) {
+                this.secondSelectedEntity.setSelected(false);
             }
             
             this.selectedEntity = null;

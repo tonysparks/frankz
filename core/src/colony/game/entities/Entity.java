@@ -87,6 +87,8 @@ public class Entity implements Updatable, PositionableRenderable {
     private Effects effects;
     private Timer dyingTimer;
     
+    private boolean isSelected;
+    
     public Entity() {
         this.pos = new Vector2();
         this.centerPos = new Vector2();
@@ -101,6 +103,7 @@ public class Entity implements Updatable, PositionableRenderable {
         this.dyingTimer.stop();
         
         this.state = EntityState.Idle;
+        this.isSelected = false;
     }
     
     /**
@@ -159,10 +162,22 @@ public class Entity implements Updatable, PositionableRenderable {
     }
     
     public int distance(BattleScene scene, Slot slot) {
-        return scene.newPathPlanner(this).pathCost(SearchType.AllSlots, scene.getSlot(this), slot);
-        
-//        float distance = this.pos.dst(ent.pos);
-//        return Math.round(distance / Slot.WIDTH);
+        return scene.newPathPlanner(this).pathCost(SearchType.AllSlots, scene.getSlot(this), slot);        
+    }
+    
+    
+    /**
+     * @return the isSelected
+     */
+    public boolean isSelected() {
+        return isSelected;
+    }
+    
+    /**
+     * @param isSelected the isSelected to set
+     */
+    public void setSelected(boolean isSelected) {
+        this.isSelected = isSelected;
     }
     
     /**

@@ -69,6 +69,7 @@ public class EntityModel implements Renderable {
         float y = entity.bounds.y;
                 
         this.sprite.setPosition(x, y);
+        this.sprite.setAlpha( this.entity.isSelected() ? 1.0f : 0.5f);
         this.sprite.draw(context.batch);
     }
 }

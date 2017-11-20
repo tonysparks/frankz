@@ -200,7 +200,7 @@ public class BattleScreen implements Screen {
         camera.position.y = MathUtils.clamp(camera.position.y, effectiveViewportHeight / 2f, maxZoom - effectiveViewportHeight / 2f);
                 
         Vector3 pos = camera.unproject(this.inputProcessor.getMousePos());  
-        this.battleScene.setHighlightedSlot(pos.x, pos.y);
+        this.battleScene.hoverOverPos(pos.x, pos.y);
         
     }
 

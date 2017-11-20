@@ -35,7 +35,6 @@ public class InfluenceMap implements Renderable {
     }
     
     private BattleScene scene;
-    private AI ai;
     
     private Influence[][] influences;
     private Faction aiFaction;

@@ -110,14 +110,14 @@ public class MoveEvaluator implements Evaluator {
             }
             
             if(bestSlot != scene.getSlot(ai)) {
-                if(bestScore > 100) {
+                if(bestScore > 20) {
                     score = dice.getRandomRangeMin(0.8);
                 }
-                else if (bestScore > 50) {
-                    score = dice.getRandomRangeMin(0.5);
+                else if (bestScore > 15) {
+                    score = dice.getRandomRangeMin(0.3);
                 }
-                else if (bestScore > 25) {
-                    score = dice.getRandomRangeMin(0.2);
+                else if (bestScore > 10) {
+                    score = dice.getRandomRangeMax(0.5);
                 }
                 
                 destinationSlot = Optional.of(bestSlot);

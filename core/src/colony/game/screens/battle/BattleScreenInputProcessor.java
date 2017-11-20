@@ -117,7 +117,7 @@ public class BattleScreenInputProcessor implements InputProcessor {
                     }
                 }
                 else {
-                    if(ent.isPresent()) {
+                    if(ent.isPresent() && scene.getSelectedEntity().isEnemy(ent.get())) {
                         scene.issueAttackCommand(ent.get());
                     }
                     else {
